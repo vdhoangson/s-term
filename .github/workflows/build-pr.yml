@@ -1,0 +1,64 @@
+name: Build PR
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --frozen-lockfile
+
+      - name: Check code formatting
+        if: matrix.os == 'ubuntu-latest'
+        run: npm run format:check
+
+      - name: Lint code
+        if: matrix.os == 'ubuntu-latest'
+        continue-on-error: true
+        run: npm run lint
+
+      - name: Build Renderer
+        run: npm run build:renderer
+
+      - name: Build Electron
+        run: npm run build:electron
+
+      - name: Package (macOS)
+        if: matrix.os == 'macos-latest'
+        run: npm run pack
+
+      - name: Package (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: npm run pack
+
+      - name: Package (Windows)
+        if: matrix.os == 'windows-latest'
+        run: npm run pack
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.os }}
+          path: |
+            dist/**/*
+            dist-electron/**/*
+          retention-days: 3

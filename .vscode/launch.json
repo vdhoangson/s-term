@@ -1,0 +1,94 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Electron: Main Process",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
+      "runtimeArgs": [
+        ".",
+        "--trace-warnings",
+        "--remote-debugging-port=9223"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NODE_ENV": "development",
+        "ELECTRON_START_URL": "http://localhost:5173"
+      },
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceFolder}/dist-electron/**/*.js"
+      ],
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/node_modules/**"
+      ],
+      "console": "integratedTerminal",
+      "preLaunchTask": "Build Electron"
+    },
+    {
+      "name": "Electron: Renderer Process",
+      "type": "chrome",
+      "request": "attach",
+      "port": 9223,
+      "webRoot": "${workspaceFolder}/src",
+      "sourceMapPathOverrides": {
+        "webpack:///./src/*": "${webRoot}/*"
+      },
+      "timeout": 30000,
+      "trace": true
+    },
+    {
+      "name": "Electron: Main (Attach)",
+      "type": "node",
+      "request": "attach",
+      "port": 5858,
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceFolder}/dist-electron/**/*.js"
+      ],
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    },
+    {
+      "name": "Electron: Quick Debug",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
+      "program": "${workspaceFolder}/dist-electron/electron/main/index.js",
+      "args": [
+        "--trace-warnings"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NODE_ENV": "development",
+        "ELECTRON_START_URL": "http://localhost:5173"
+      },
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceFolder}/dist-electron/**/*.js"
+      ],
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "console": "integratedTerminal"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Electron: Full Stack",
+      "configurations": [
+        "Electron: Main Process",
+        "Electron: Renderer Process"
+      ],
+      "stopAll": true,
+      "presentation": {
+        "hidden": false,
+        "group": "electron",
+        "order": 1
+      }
+    }
+  ]
+}
