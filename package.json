@@ -27,7 +27,8 @@
     "format": "prettier --write \"src/**/*.{js,ts,vue,json,css,scss,md}\" \"electron/**/*.{js,ts}\"",
     "format:check": "prettier --check \"src/**/*.{js,ts,vue,json,css,scss,md}\" \"electron/**/*.{js,ts}\"",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "postinstall": "electron-builder install-app-deps"
   },
   "build": {
     "appId": "com.sterm.app",
