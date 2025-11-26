@@ -81,7 +81,7 @@
         }
       ],
       "category": "public.app-category.developer-tools",
-      "icon": "build/icon.png",
+      "icon": "build/icons/mac/icon.icns",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "build/entitlements.mac.plist",
@@ -93,7 +93,7 @@
         "portable",
         "appx"
       ],
-      "icon": "build/icon.ico",
+      "icon": "build/icons/win/icon.ico",
       "artifactName": "${productName}-${version}-${arch}.${ext}"
     },
     "nsis": {
@@ -113,7 +113,7 @@
       ],
       "executableName": "s-term",
       "category": "Development",
-      "icon": "build/icons",
+      "icon": "build/icons/png",
       "synopsis": "Modern SSH Terminal",
       "description": "Modern SSH Terminal with SFTP support, X11 forwarding, and remote monitoring"
     },
