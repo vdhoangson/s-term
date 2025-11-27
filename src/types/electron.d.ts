@@ -1,4 +1,5 @@
 export interface IElectronAPI {
+  selectFile: (options?: any) => Promise<{ canceled: boolean; filePath?: string }>
   store: {
     getConnections: () => Promise<any[]>
     saveConnection: (connection: any) => Promise<void>

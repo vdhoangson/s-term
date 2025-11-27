@@ -27,7 +27,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { useSettingsStore } from '../stores/settings'
+import { useSettingsStore } from '../../stores/settings'
 
 const settingsStore = useSettingsStore()
 

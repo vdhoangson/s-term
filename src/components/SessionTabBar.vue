@@ -1,30 +1,30 @@
 <template>
-  <v-toolbar
+  <v-app-bar
     v-if="sessions.length > 0"
+    :elevation="8"
     color="grey-darken-4"
-    class="d-flex align-center px-2"
+    class="align-center"
     height="40"
   >
     <!-- Session Tabs -->
-    <v-btn
-      v-for="session in sessions"
-      :key="session.id"
-      :variant="activeSessionId === session.id ? 'tonal' : 'text'"
-      :color="activeSessionId === session.id ? 'primary' : 'grey'"
-      size="small"
-      class="text-none mx-1"
-      @click="$emit('select-session', session.id)"
+    <v-tabs
+      :model-value="activeSessionId"
+      density="compact"
+      color="primary"
+      class="flex-grow-1"
+      @update:model-value="$emit('select-session', $event)"
     >
-      {{ session.title }}
-      <v-icon
-        end
-        icon="mdi-close"
-        size="x-small"
-        @click.stop="$emit('close-session', session.id)"
-      />
-    </v-btn>
-
-    <v-spacer />
+      <v-tab v-for="session in sessions" :key="session.id" :value="session.id" class="text-none">
+        {{ session.title }}
+        <v-icon
+          end
+          icon="mdi-close"
+          size="x-small"
+          class="ml-2"
+          @click.stop="$emit('close-session', session.id)"
+        />
+      </v-tab>
+    </v-tabs>
 
     <!-- Monitoring Toggle -->
     <v-tooltip
@@ -57,7 +57,7 @@
         />
       </template>
     </v-tooltip>
-  </v-toolbar>
+  </v-app-bar>
 </template>
 
 <script setup lang="ts">

@@ -6,53 +6,51 @@
     />
 
     <SessionSidebar v-model="connectionSidebarOpen" />
-
-    <v-main class="d-flex flex-column" style="overflow: hidden">
-      <!-- Tab Bar - Fixed at top -->
-      <SessionTabBar
-        :sessions="store.sessions"
-        :active-session-id="store.activeSessionId"
-        :sftp-sidebar-open="sftpSidebarOpen"
-        @select-session="store.setActiveSession"
-        @close-session="closeSession"
-        @toggle-monitoring="toggleMonitoring"
-        @toggle-sftp="sftpSidebarOpen = !sftpSidebarOpen"
+    <!-- Main Content Area - Scrollable -->
+    <v-main>
+      <!-- Right SFTP Sidebar -->
+      <SessionSidePanel
+        v-if="store.activeSessionId && activeSession?.type === 'ssh'"
+        v-model="sftpSidebarOpen"
+        :session-id="store.activeSessionId"
       />
-
-      <!-- Main Content Area - Scrollable -->
       <!-- Terminal Views -->
-      <template v-for="session in store.sessions" :key="session.id">
+      <template
+        v-if="store.sessions.length > 0"
+        v-for="session in store.sessions"
+        :key="session.id"
+      >
         <div v-show="store.activeSessionId === session.id" class="fill-height">
           <TerminalView :session-id="session.id" />
         </div>
       </template>
-
       <!-- Empty State -->
-      <v-container
-        v-if="store.sessions.length === 0"
-        class="fill-height d-flex align-center justify-center"
-      >
+      <v-container v-else class="d-flex align-center justify-center fill-height">
         <div class="text-center text-grey">
           <v-icon icon="mdi-console" size="64" class="mb-4" />
           <div class="text-h5">{{ $t('session.noActiveSessions') }}</div>
           <div class="text-body-2 mt-2">{{ $t('session.selectFromSidebar') }}</div>
         </div>
       </v-container>
-
-      <!-- Monitoring Panel (Footer) - Fixed at bottom -->
-      <MonitoringPanel
-        v-if="activeSession?.type === 'ssh'"
-        :session-id="store.activeSessionId!"
-        :session-name="activeSession.title"
-        :enabled="monitoringEnabled"
-      />
     </v-main>
 
-    <!-- Right SFTP Sidebar -->
-    <SessionSidePanel
-      v-if="store.activeSessionId && activeSession?.type === 'ssh'"
-      v-model="sftpSidebarOpen"
-      :session-id="store.activeSessionId"
+    <!-- Tab Bar - Fixed at top -->
+    <SessionTabBar
+      :sessions="store.sessions"
+      :active-session-id="store.activeSessionId"
+      :sftp-sidebar-open="sftpSidebarOpen"
+      @select-session="store.setActiveSession"
+      @close-session="closeSession"
+      @toggle-monitoring="toggleMonitoring"
+      @toggle-sftp="sftpSidebarOpen = !sftpSidebarOpen"
+    />
+
+    <!-- Monitoring Panel (Footer) - Fixed at bottom -->
+    <MonitoringPanel
+      v-if="activeSession?.type === 'ssh'"
+      :session-id="store.activeSessionId!"
+      :session-name="activeSession.title"
+      :enabled="monitoringEnabled"
     />
 
     <!-- Update Notification -->
@@ -75,7 +73,7 @@ import SessionTabBar from './components/SessionTabBar.vue'
 import TerminalView from './components/TerminalView.vue'
 import SessionSidePanel from './components/SessionSidePanel.vue'
 import MonitoringPanel from './components/layout/MonitoringPanel.vue'
-import UpdateNotification from './components/UpdateNotification.vue'
+import UpdateNotification from './components/layout/UpdateNotification.vue'
 import { useTerminalStore } from './stores/terminal'
 import AboutModal from './components/AboutModal.vue'
 import SettingsModal from './components/SettingsModal.vue'

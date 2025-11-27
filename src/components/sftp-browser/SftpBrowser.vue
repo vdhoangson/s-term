@@ -1,5 +1,5 @@
 <template>
-  <div class="sftp-browser d-flex flex-column" style="height: 100%">
+  <div class="sftp-browser d-flex flex-column fill-height">
     <!-- Toolbar (fixed) -->
     <v-sheet class="pa-2" style="flex-shrink: 0">
       <v-text-field
@@ -120,76 +120,30 @@
     </v-list>
 
     <!-- New Folder Dialog -->
-    <v-dialog v-model="showNewFolderDialog" max-width="400">
-      <v-card>
-        <v-card-title>{{ $t('sftp.newFolderDialog.title') }}</v-card-title>
-        <v-card-text>
-          <v-text-field
-            v-model="newFolderName"
-            :label="$t('sftp.newFolderDialog.label')"
-            variant="outlined"
-            density="compact"
-            autofocus
-            @keyup.enter="createFolder"
-          ></v-text-field>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn @click="showNewFolderDialog = false">{{
-            $t('sftp.newFolderDialog.cancel')
-          }}</v-btn>
-          <v-btn color="primary" @click="createFolder">{{
-            $t('sftp.newFolderDialog.create')
-          }}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <NewFolderDialog v-model="showNewFolderDialog" @create="createFolder" />
 
     <!-- Delete Confirmation Dialog -->
-    <v-dialog v-model="showDeleteDialog" max-width="400">
-      <v-card>
-        <v-card-title class="text-h5">{{ $t('sftp.deleteDialog.title') }}</v-card-title>
-        <v-card-text>
-          {{ $t('sftp.deleteDialog.message', { name: selectedFile?.filename }) }}
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="grey" @click="showDeleteDialog = false">{{
-            $t('sftp.deleteDialog.cancel')
-          }}</v-btn>
-          <v-btn color="error" @click="confirmDelete">{{ $t('sftp.deleteDialog.delete') }}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <DeleteConfirmDialog
+      v-model="showDeleteDialog"
+      :file-name="selectedFile?.filename || ''"
+      @confirm="confirmDelete"
+    />
 
     <!-- Rename Dialog -->
-    <v-dialog v-model="showRenameDialog" max-width="400">
-      <v-card>
-        <v-card-title>{{ $t('sftp.renameDialog.title') }}</v-card-title>
-        <v-card-text>
-          <v-text-field
-            v-model="newFileName"
-            :label="$t('sftp.renameDialog.label')"
-            :placeholder="$t('sftp.renameDialog.placeholder')"
-            variant="outlined"
-            density="compact"
-            autofocus
-            @keyup.enter="confirmRename"
-          ></v-text-field>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn @click="showRenameDialog = false">{{ $t('sftp.renameDialog.cancel') }}</v-btn>
-          <v-btn color="primary" @click="confirmRename">{{ $t('sftp.renameDialog.rename') }}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <RenameDialog
+      v-model="showRenameDialog"
+      :current-name="selectedFile?.filename || ''"
+      @rename="confirmRename"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import NewFolderDialog from './NewFolderDialog.vue'
+import DeleteConfirmDialog from './DeleteConfirmDialog.vue'
+import RenameDialog from './RenameDialog.vue'
 
 const { t: $t } = useI18n()
 
@@ -208,7 +162,6 @@ const currentPath = ref('/')
 const files = ref<FileInfo[]>([])
 const loading = ref(false)
 const showNewFolderDialog = ref(false)
-const newFolderName = ref('')
 
 // Context Menu state
 const showContextMenu = ref(false)
@@ -221,7 +174,6 @@ const showDeleteDialog = ref(false)
 
 // Rename Dialog state
 const showRenameDialog = ref(false)
-const newFileName = ref('')
 
 onMounted(async () => {
   await loadFiles()
@@ -283,21 +235,33 @@ async function downloadFile(file: FileInfo) {
 
 async function uploadFile() {
   try {
-    // TODO: Open file picker and upload
-    console.log('Upload to:', currentPath.value)
+    // Open file picker
+    const result = await window.electronAPI?.selectFile()
+
+    if (result && !result.canceled && result.filePath) {
+      loading.value = true
+      const remotePath = currentPath.value.endsWith('/')
+        ? currentPath.value
+        : currentPath.value + '/'
+
+      await window.ipcRenderer.invoke('sftp:upload', props.sessionId, result.filePath, remotePath)
+
+      // Reload files after upload
+      await loadFiles()
+    }
   } catch (error) {
     console.error('Upload failed:', error)
+  } finally {
+    loading.value = false
   }
 }
 
-async function createFolder() {
-  if (!newFolderName.value) return
+async function createFolder(folderName: string) {
+  if (!folderName) return
 
   try {
-    const newPath = `${currentPath.value}/${newFolderName.value}`.replace('//', '/')
+    const newPath = `${currentPath.value}/${folderName}`.replace('//', '/')
     await window.ipcRenderer.invoke('sftp:mkdir', props.sessionId, newPath)
-    showNewFolderDialog.value = false
-    newFolderName.value = ''
     await loadFiles()
   } catch (error) {
     console.error('Create folder failed:', error)
@@ -327,22 +291,16 @@ async function confirmDelete() {
 function renameFile(file: FileInfo) {
   selectedFile.value = file
   showContextMenu.value = false
-  newFileName.value = file.filename
   showRenameDialog.value = true
 }
 
-async function confirmRename() {
-  if (!selectedFile.value || !newFileName.value) return
-  if (newFileName.value === selectedFile.value.filename) {
-    showRenameDialog.value = false
-    return
-  }
+async function confirmRename(newName: string) {
+  if (!selectedFile.value || !newName) return
 
   try {
     const oldPath = `${currentPath.value}/${selectedFile.value.filename}`.replace('//', '/')
-    const newPath = `${currentPath.value}/${newFileName.value}`.replace('//', '/')
+    const newPath = `${currentPath.value}/${newName}`.replace('//', '/')
     await window.ipcRenderer.invoke('sftp:rename', props.sessionId, oldPath, newPath)
-    showRenameDialog.value = false
     selectedFile.value = null
     await loadFiles()
   } catch (error) {

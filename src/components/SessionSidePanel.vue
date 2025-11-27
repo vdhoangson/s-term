@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import SftpBrowser from './SftpBrowser.vue'
+import SftpBrowser from './sftp-browser/SftpBrowser.vue'
 
 defineProps<{
   sessionId: string

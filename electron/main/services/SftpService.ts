@@ -43,6 +43,10 @@ export class SftpService {
     ipcMain.handle('sftp:rename', async (event, sessionId, oldPath, newPath) => {
       return this.renameFile(sessionId, oldPath, newPath)
     })
+
+    ipcMain.handle('sftp:upload', async (event, sessionId, localPath, remotePath) => {
+      return this.uploadFile(sessionId, localPath, remotePath)
+    })
   }
 
   private async ensureSftpConnected(sessionId: string): Promise<any> {
@@ -183,6 +187,25 @@ export class SftpService {
           return
         }
         console.log('Renamed:', oldPath, 'to', newPath)
+        resolve()
+      })
+    })
+  }
+
+  private async uploadFile(sessionId: string, localPath: string, remotePath: string): Promise<void> {
+    const sftp = await this.ensureSftpConnected(sessionId)
+    
+    const fileName = path.basename(localPath)
+    const fullRemotePath = path.posix.join(remotePath, fileName)
+
+    return new Promise((resolve, reject) => {
+      sftp.fastPut(localPath, fullRemotePath, (err: any) => {
+        if (err) {
+          console.error('Upload error:', err)
+          reject(err)
+          return
+        }
+        console.log('Uploaded:', localPath, 'to', fullRemotePath)
         resolve()
       })
     })
