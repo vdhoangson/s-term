@@ -32,7 +32,7 @@
   },
   "build": {
     "appId": "com.sterm.app",
-    "productName": "S-Term",
+    "productName": "S Term",
     "copyright": "Copyright © 2025",
     "asar": true,
     "asarUnpack": [
@@ -102,7 +102,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "S-Term"
+      "shortcutName": "S Term"
     },
     "linux": {
       "target": [

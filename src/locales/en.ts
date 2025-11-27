@@ -12,6 +12,16 @@ export default {
       settings: 'Settings',
     },
   },
+  about: {
+    description: 'Modern SSH Terminal with SFTP support, X11 forwarding, and remote monitoring.',
+    author: 'Author',
+  },
+  settings: {
+    title: 'Settings',
+    general: 'General',
+    checkForUpdates: 'Check for Updates',
+    checkForUpdatesDescription: 'Automatically check for application updates on startup',
+  },
   session: {
     noActiveSessions: 'No Active Sessions',
     selectFromSidebar: 'Select a session from the sidebar to start',

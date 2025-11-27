@@ -14,6 +14,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getConnections: () => ipcRenderer.invoke('store:get-connections'),
     saveConnection: (connection: any) => ipcRenderer.invoke('store:save-connection', connection),
     deleteConnection: (id: string) => ipcRenderer.invoke('store:delete-connection', id),
+    getSettings: () => ipcRenderer.invoke('store:get-settings'),
+    setSettings: (settings: any) => ipcRenderer.invoke('store:set-settings', settings),
   },
   terminal: {
     create: (options: any) => ipcRenderer.invoke('terminal:create', options),
@@ -55,6 +57,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.on('update-error', (_event, error) => callback(error))
       return () => ipcRenderer.removeAllListeners('update-error')
     },
+  },
+  onOpenAbout: (callback: () => void) => {
+    ipcRenderer.on('menu:open-about', callback)
+    return () => ipcRenderer.removeAllListeners('menu:open-about')
+  },
+  onOpenSettings: (callback: () => void) => {
+    ipcRenderer.on('menu:open-settings', callback)
+    return () => ipcRenderer.removeAllListeners('menu:open-settings')
   },
 })
 

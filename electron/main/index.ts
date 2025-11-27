@@ -1,11 +1,11 @@
-import { app, BrowserWindow, dialog, ipcMain } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Menu } from 'electron'
 import path from 'path'
 import { MonitoringService } from './services/MonitoringService.js'
 import { PtyService } from './services/PtyService.js'
 import { SftpService } from './services/SftpService.js'
 import { StoreService } from './services/StoreService.js'
 import { updaterService } from './updater.js'
-
+import { createAppMenu } from './menu.js'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -29,6 +29,15 @@ function createWindow() {
       nodeIntegration: false,
       sandbox: false,
     },
+  })
+
+  // Open external links in default browser
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('https:') || url.startsWith('http:')) {
+      require('electron').shell.openExternal(url)
+      return { action: 'deny' }
+    }
+    return { action: 'allow' }
   })
 
   const port = process.env.VITE_PORT || 5173
@@ -69,16 +78,25 @@ app.whenReady().then(() => {
   monitoringService = new MonitoringService()
   ptyService = new PtyService(sftpService, monitoringService)
   storeService = new StoreService()
-  
+
   createWindow()
+
+  // Create application menu
+  if (mainWindow) {
+    createAppMenu(mainWindow)
+  }
   
   // Initialize updater after window is created
   if (mainWindow) {
     updaterService.setMainWindow(mainWindow)
     // Check for updates 3 seconds after app start (in production only)
     if (!process.env.ELECTRON_START_URL) {
-      setTimeout(() => {
-        updaterService.checkForUpdates()
+      setTimeout(async () => {
+        // Check if auto-updates are enabled in settings
+        const settings = storeService['getSettings']()
+        if (settings?.checkForUpdates !== false) {
+          updaterService.checkForUpdates()
+        }
       }, 3000)
     }
   }

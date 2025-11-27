@@ -27,6 +27,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useSettingsStore } from '../stores/settings'
+
+const settingsStore = useSettingsStore()
 
 const show = ref(false)
 const title = ref('')
@@ -39,7 +42,15 @@ const showInstallButton = ref(false)
 let updateInfo: any = null
 const cleanupFunctions: Array<() => void> = []
 
-onMounted(() => {
+onMounted(async () => {
+  // Load settings first
+  await settingsStore.loadSettings()
+
+  // Only set up listeners if updates are enabled
+  if (!settingsStore.checkForUpdates) {
+    return
+  }
+
   // Listen for update events
   const onUpdateChecking = window.electronAPI?.updater?.onUpdateChecking(() => {
     title.value = 'Checking for updates...'

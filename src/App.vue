@@ -57,6 +57,12 @@
 
     <!-- Update Notification -->
     <UpdateNotification />
+
+    <!-- About Modal -->
+    <AboutModal v-model="aboutModalOpen" />
+
+    <!-- Settings Modal -->
+    <SettingsModal v-model="settingsModalOpen" />
   </v-app>
 </template>
 
@@ -71,9 +77,14 @@ import SessionSidePanel from './components/SessionSidePanel.vue'
 import MonitoringPanel from './components/layout/MonitoringPanel.vue'
 import UpdateNotification from './components/UpdateNotification.vue'
 import { useTerminalStore } from './stores/terminal'
+import AboutModal from './components/AboutModal.vue'
+import SettingsModal from './components/SettingsModal.vue'
+import { onMounted, onUnmounted } from 'vue'
+import { useSettingsStore } from './stores/settings'
 
 const { t } = useI18n()
 const store = useTerminalStore()
+const settingsStore = useSettingsStore()
 
 const connectionSidebarOpen = ref(true)
 const sftpSidebarOpen = ref(true)
@@ -102,4 +113,28 @@ function closeSession(id: string) {
     store.removeSession(id)
   }
 }
+
+const aboutModalOpen = ref(false)
+const settingsModalOpen = ref(false)
+
+onMounted(() => {
+  // Load settings on startup
+  settingsStore.loadSettings()
+
+  // About modal listener
+  if (window.electronAPI?.onOpenAbout) {
+    const cleanup = window.electronAPI.onOpenAbout(() => {
+      aboutModalOpen.value = true
+    })
+    onUnmounted(cleanup)
+  }
+
+  // Settings modal listener
+  if (window.electronAPI?.onOpenSettings) {
+    const cleanupSettings = window.electronAPI.onOpenSettings(() => {
+      settingsModalOpen.value = true
+    })
+    onUnmounted(cleanupSettings)
+  }
+})
 </script>

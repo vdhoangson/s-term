@@ -7,6 +7,9 @@ import { randomUUID } from 'crypto'
 interface StoredData {
   connections: Record<string, any>
   folders: Record<string, any>
+  settings: {
+    checkForUpdates: boolean
+  }
 }
 
 const SERVICE_NAME = 's-term'
@@ -19,6 +22,9 @@ export class StoreService {
       defaults: {
         connections: {},
         folders: {},
+        settings: {
+          checkForUpdates: true,
+        },
       },
     })
 
@@ -51,6 +57,14 @@ export class StoreService {
 
     ipcMain.handle('store:delete-folder', (event, id) => {
       return this.deleteFolder(id)
+    })
+
+    ipcMain.handle('store:get-settings', () => {
+      return this.getSettings()
+    })
+
+    ipcMain.handle('store:set-settings', (event, settings) => {
+      return this.setSettings(settings)
     })
   }
 
@@ -264,5 +278,14 @@ export class StoreService {
       this.store.set('folders', folders)
       console.log('Migration complete: Folder paths converted to Folder objects.')
     }
+  }
+
+  private getSettings() {
+    return this.store.get('settings')
+  }
+
+  private setSettings(settings: any) {
+    this.store.set('settings', settings)
+    return true
   }
 }

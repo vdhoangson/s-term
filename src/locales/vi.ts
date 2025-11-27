@@ -12,6 +12,16 @@ export default {
       settings: 'Cài đặt',
     },
   },
+  about: {
+    description: 'Terminal SSH hiện đại với hỗ trợ SFTP, X11 forwarding và giám sát từ xa.',
+    author: 'Tác giả',
+  },
+  settings: {
+    title: 'Cài đặt',
+    general: 'Chung',
+    checkForUpdates: 'Kiểm tra cập nhật',
+    checkForUpdatesDescription: 'Tự động kiểm tra cập nhật ứng dụng khi khởi động',
+  },
   session: {
     noActiveSessions: 'Không có phiên làm việc',
     selectFromSidebar: 'Chọn một phiên từ thanh bên để bắt đầu',

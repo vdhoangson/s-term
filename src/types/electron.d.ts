@@ -3,7 +3,11 @@ export interface IElectronAPI {
     getConnections: () => Promise<any[]>
     saveConnection: (connection: any) => Promise<void>
     deleteConnection: (id: string) => Promise<void>
+    getSettings: () => Promise<{ checkForUpdates: boolean }>
+    setSettings: (settings: { checkForUpdates: boolean }) => Promise<void>
   }
+  onOpenAbout: (callback: () => void) => () => void
+  onOpenSettings: (callback: () => void) => () => void
 }
 
 declare global {
