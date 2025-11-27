@@ -1,5 +1,5 @@
 <template>
-  <v-snackbar v-model="show" :timeout="-1" location="top" color="primary">
+  <v-snackbar v-model="show" :timeout="snackbarTimeout" location="top" :color="snackbarColor">
     <div class="d-flex align-center">
       <v-icon class="mr-3">mdi-download</v-icon>
       <div class="flex-grow-1">
@@ -38,6 +38,8 @@ const progress = ref(0)
 const showProgress = ref(false)
 const showDownloadButton = ref(false)
 const showInstallButton = ref(false)
+const snackbarColor = ref('primary')
+const snackbarTimeout = ref(-1)
 
 let updateInfo: any = null
 const cleanupFunctions: Array<() => void> = []
@@ -59,6 +61,8 @@ onMounted(async () => {
     showDownloadButton.value = false
     showInstallButton.value = false
     showProgress.value = false
+    snackbarColor.value = 'primary'
+    snackbarTimeout.value = -1
   })
 
   const onUpdateAvailable = window.electronAPI?.updater?.onUpdateAvailable((info: any) => {
@@ -69,6 +73,8 @@ onMounted(async () => {
     showDownloadButton.value = true
     showInstallButton.value = false
     showProgress.value = false
+    snackbarColor.value = 'primary'
+    snackbarTimeout.value = -1
   })
 
   const onUpdateNotAvailable = window.electronAPI?.updater?.onUpdateNotAvailable(() => {
@@ -96,6 +102,8 @@ onMounted(async () => {
     showDownloadButton.value = false
     showInstallButton.value = true
     showProgress.value = false
+    snackbarColor.value = 'success'
+    snackbarTimeout.value = -1
   })
 
   const onUpdateError = window.electronAPI?.updater?.onUpdateError((error: string) => {
@@ -105,6 +113,8 @@ onMounted(async () => {
     showDownloadButton.value = false
     showInstallButton.value = false
     showProgress.value = false
+    snackbarColor.value = 'error'
+    snackbarTimeout.value = 3000 // Auto-close after 3 seconds
   })
 
   // Store cleanup functions
