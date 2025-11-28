@@ -95,7 +95,14 @@
         "appx"
       ],
       "icon": "build/icons/win/icon.ico",
-      "artifactName": "${productName}-${version}-${arch}.${ext}"
+      "artifactName": "S-Term-${version}-${arch}.${ext}",
+      "publisherName": "vdhoangson",
+      "appx": {
+        "applicationId": "STerm",
+        "identityName": "com.sterm.app",
+        "publisher": "CN=vdhoangson",
+        "displayName": "S-Term"
+      }
     },
     "nsis": {
       "oneClick": false,
