@@ -161,7 +161,7 @@
     "electron-store": "^11.0.2",
     "electron-updater": "^6.6.2",
     "keytar": "^7.9.0",
-    "node-pty": "^1.0.0",
+    "node-pty": "1.1.0-beta39",
     "pinia": "^3.0.4",
     "ssh2": "^1.17.0",
     "vue": "^3.5.25",
