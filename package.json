@@ -15,39 +15,45 @@
     "dev:renderer": "vite",
     "dev:electron": "wait-on tcp:5173 && cross-env ELECTRON_START_URL=http://localhost:5173 electron . --trace-warnings",
     "dev": "concurrently \"npm run dev:renderer\" \"npm run dev:electron\"",
+
     "build:electron": "tsc -p tsconfig.electron.json",
     "build:renderer": "vite build",
     "start": "electron . --trace-warnings",
+
     "build": "npm run build:renderer && npm run build:electron && electron-builder",
     "pack": "npm run build:renderer && npm run build:electron && electron-builder --dir",
     "build:win": "npm run build:renderer && npm run build:electron && electron-builder --win",
     "build:mac": "npm run build:renderer && npm run build:electron && electron-builder --mac",
     "build:linux": "npm run build:renderer && npm run build:electron && electron-builder --linux",
     "build:all": "npm run build:renderer && npm run build:electron && electron-builder -mwl",
+
     "format": "prettier --write \"src/**/*.{js,ts,vue,json,css,scss,md}\" \"electron/**/*.{js,ts}\"",
     "format:check": "prettier --check \"src/**/*.{js,ts,vue,json,css,scss,md}\" \"electron/**/*.{js,ts}\"",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+
     "postinstall": "electron-builder install-app-deps"
   },
+
   "build": {
     "appId": "com.sterm.app",
-    "productName": "S Term",
-    "copyright": "Copyright © 2025",
+    "productName": "STerm",
+
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+
     "asar": true,
-    "asarUnpack": [
-      "**/*.node"
-    ],
+    "asarUnpack": ["**/*.node"],
+
     "files": [
       "dist/**/*",
       "dist-electron/**/*",
       "**/*.node",
       "package.json"
     ],
-    "directories": {
-      "output": "release",
-      "buildResources": "build"
-    },
+
     "publish": [
       {
         "provider": "github",
@@ -55,76 +61,52 @@
         "repo": "s-term"
       }
     ],
+
     "extraResources": [
       {
         "from": "resources",
-        "to": "resources",
-        "filter": [
-          "**/*"
-        ]
+        "to": "resources"
       }
     ],
+
     "mac": {
-      "target": [
-        {
-          "target": "dmg",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        },
-        {
-          "target": "zip",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        }
-      ],
+      "target": ["dmg", "zip"],
       "category": "public.app-category.developer-tools",
       "icon": "build/icons/mac/icon.icns",
       "hardenedRuntime": true,
-      "gatekeeperAssess": false,
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist"
     },
+
     "win": {
-      "target": [
-        "nsis",
-        "portable",
-        "appx"
-      ],
+      "target": ["nsis", "portable", "appx"],
       "icon": "build/icons/win/icon.ico",
-      "artifactName": "S-Term-${version}-${arch}.${ext}",
-      "publisherName": "vdhoangson"
+      "artifactName": "STerm-${version}-${arch}.${ext}"
     },
+
     "appx": {
       "applicationId": "STerm",
       "identityName": "com.sterm.app",
       "publisher": "CN=vdhoangson",
-      "displayName": "S-Term"
+      "displayName": "S-Term",
+      "backgroundColor": "#202020"
     },
+
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "S Term"
+      "shortcutName": "STerm"
     },
+
     "linux": {
-      "target": [
-        "deb",
-        "snap",
-        "AppImage",
-        "rpm",
-        "pacman"
-      ],
-      "executableName": "s-term",
-      "category": "Development",
+      "target": ["deb", "AppImage", "rpm", "pacman", "snap"],
       "icon": "build/icons/png",
-      "synopsis": "Modern SSH Terminal",
-      "description": "Modern SSH Terminal with SFTP support, X11 forwarding, and remote monitoring"
+      "executableName": "s-term",
+      "category": "Development"
     },
+
     "snap": {
       "confinement": "classic",
       "grade": "stable",
@@ -143,23 +125,9 @@
         "pulseaudio",
         "password-manager-service"
       ]
-    },
-    "deb": {
-      "depends": [
-        "libsecret-1-0"
-      ]
-    },
-    "rpm": {
-      "depends": [
-        "libsecret"
-      ]
-    },
-    "pacman": {
-      "depends": [
-        "libsecret"
-      ]
     }
   },
+
   "dependencies": {
     "@mdi/font": "^7.4.47",
     "@xterm/addon-fit": "^0.10.0",
@@ -176,8 +144,8 @@
     "vuedraggable": "^4.1.0",
     "vuetify": "^3.11.1"
   },
+
   "devDependencies": {
-    "@electron/rebuild": "^4.0.1",
     "@types/node": "^24.10.1",
     "@types/ssh2": "^1.15.5",
     "@typescript-eslint/eslint-plugin": "^8.48.0",
@@ -188,7 +156,6 @@
     "cross-env": "^10.1.0",
     "electron": "^39.2.3",
     "electron-builder": "^26.0.12",
-    "electron-rebuild": "^3.2.9",
     "eslint": "^9.39.1",
     "eslint-plugin-vue": "^10.6.0",
     "prettier": "^3.6.2",
