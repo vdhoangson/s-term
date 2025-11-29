@@ -15,45 +15,38 @@
     "dev:renderer": "vite",
     "dev:electron": "wait-on tcp:5173 && cross-env ELECTRON_START_URL=http://localhost:5173 electron . --trace-warnings",
     "dev": "concurrently \"npm run dev:renderer\" \"npm run dev:electron\"",
-
     "build:electron": "tsc -p tsconfig.electron.json",
     "build:renderer": "vite build",
     "start": "electron . --trace-warnings",
-
     "build": "npm run build:renderer && npm run build:electron && electron-builder",
     "pack": "npm run build:renderer && npm run build:electron && electron-builder --dir",
     "build:win": "npm run build:renderer && npm run build:electron && electron-builder --win",
     "build:mac": "npm run build:renderer && npm run build:electron && electron-builder --mac",
     "build:linux": "npm run build:renderer && npm run build:electron && electron-builder --linux",
     "build:all": "npm run build:renderer && npm run build:electron && electron-builder -mwl",
-
     "format": "prettier --write \"src/**/*.{js,ts,vue,json,css,scss,md}\" \"electron/**/*.{js,ts}\"",
     "format:check": "prettier --check \"src/**/*.{js,ts,vue,json,css,scss,md}\" \"electron/**/*.{js,ts}\"",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-
     "postinstall": "electron-builder install-app-deps"
   },
-
   "build": {
     "appId": "com.sterm.app",
     "productName": "STerm",
-
     "directories": {
       "output": "release",
       "buildResources": "build"
     },
-
     "asar": true,
-    "asarUnpack": ["**/*.node"],
-
+    "asarUnpack": [
+      "**/*.node"
+    ],
     "files": [
       "dist/**/*",
       "dist-electron/**/*",
       "**/*.node",
       "package.json"
     ],
-
     "publish": [
       {
         "provider": "github",
@@ -61,29 +54,32 @@
         "repo": "s-term"
       }
     ],
-
     "extraResources": [
       {
         "from": "resources",
         "to": "resources"
       }
     ],
-
     "mac": {
-      "target": ["dmg", "zip"],
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "category": "public.app-category.developer-tools",
       "icon": "build/icons/mac/icon.icns",
       "hardenedRuntime": true,
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist"
     },
-
     "win": {
-      "target": ["nsis", "portable", "appx"],
+      "target": [
+        "nsis",
+        "portable",
+        "appx"
+      ],
       "icon": "build/icons/win/icon.ico",
       "artifactName": "STerm-${version}-${arch}.${ext}"
     },
-
     "appx": {
       "applicationId": "STerm",
       "identityName": "com.sterm.app",
@@ -91,7 +87,6 @@
       "displayName": "S-Term",
       "backgroundColor": "#202020"
     },
-
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
@@ -99,14 +94,18 @@
       "createStartMenuShortcut": true,
       "shortcutName": "STerm"
     },
-
     "linux": {
-      "target": ["deb", "AppImage", "rpm", "pacman", "snap"],
+      "target": [
+        "deb",
+        "AppImage",
+        "rpm",
+        "pacman",
+        "snap"
+      ],
       "icon": "build/icons/png",
       "executableName": "s-term",
       "category": "Development"
     },
-
     "snap": {
       "confinement": "classic",
       "grade": "stable",
@@ -127,15 +126,21 @@
       ]
     }
   },
-
   "dependencies": {
     "@mdi/font": "^7.4.47",
-    "@xterm/addon-fit": "^0.10.0",
-    "@xterm/xterm": "^5.5.0",
+    "@xterm/addon-clipboard": "^0.2.0-beta.119",
+    "@xterm/addon-image": "^0.9.0-beta.136",
+    "@xterm/addon-ligatures": "^0.10.0-beta.136",
+    "@xterm/addon-progress": "^0.2.0-beta.42",
+    "@xterm/addon-search": "^0.16.0-beta.136",
+    "@xterm/addon-serialize": "^0.14.0-beta.136",
+    "@xterm/addon-unicode11": "^0.9.0-beta.136",
+    "@xterm/addon-webgl": "^0.19.0-beta.136",
+    "@xterm/headless": "^5.6.0-beta.136",
+    "@xterm/xterm": "^5.6.0-beta.136",
     "electron-log": "^5.4.3",
     "electron-store": "^11.0.2",
     "electron-updater": "^6.6.2",
-    "keytar": "^7.9.0",
     "node-pty": "1.1.0-beta39",
     "pinia": "^3.0.4",
     "ssh2": "^1.17.0",
@@ -144,7 +149,6 @@
     "vuedraggable": "^4.1.0",
     "vuetify": "^3.11.1"
   },
-
   "devDependencies": {
     "@types/node": "^24.10.1",
     "@types/ssh2": "^1.15.5",

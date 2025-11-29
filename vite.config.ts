@@ -8,31 +8,24 @@ export default defineConfig(({ mode }) => {
   const port = parseInt(env.VITE_PORT) || 5173
 
   return {
-    base: './',   // Quan trọng cho Electron
+    base: './', // Quan trọng cho Electron
 
-    plugins: [
-      vue(),
-      vuetify({ autoImport: true })
-    ],
+    plugins: [vue(), vuetify({ autoImport: true })],
 
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
-        'vue': 'vue/dist/vue.esm-bundler.js'
-      }
+        vue: 'vue/dist/vue.esm-bundler.js',
+      },
     },
 
     server: {
       port,
-      strictPort: true
+      strictPort: true,
     },
 
     optimizeDeps: {
-      exclude: [
-        'vue',
-        'vue-i18n',
-        'vuetify'
-      ]
+      exclude: ['vue', 'vue-i18n', 'vuetify'],
     },
 
     build: {
@@ -43,16 +36,8 @@ export default defineConfig(({ mode }) => {
 
       rollupOptions: {
         // Những module Electron không cho Vite bundle
-        external: [
-          'electron',
-          'fs',
-          'path',
-          'os',
-          'node-pty',
-          'ssh2',
-          'keytar'
-        ]
-      }
-    }
+        external: ['electron', 'fs', 'path', 'os', 'node-pty', 'ssh2'],
+      },
+    },
   }
 })
