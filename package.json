@@ -141,6 +141,7 @@
     "electron-log": "^5.4.3",
     "electron-store": "^11.0.2",
     "electron-updater": "^6.6.2",
+    "node-gyp": "^12.1.0",
     "node-pty": "1.1.0-beta39",
     "pinia": "^3.0.4",
     "ssh2": "^1.17.0",
