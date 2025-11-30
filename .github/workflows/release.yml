@@ -71,7 +71,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt update -y
-          sudo apt install -y rpm snapcraft libsecret-1-dev dpkg fakeroot
+          sudo apt install -y rpm libsecret-1-dev dpkg fakeroot
 
       # ----------------------------------------------------
       # Install deps (super fast with cache)
