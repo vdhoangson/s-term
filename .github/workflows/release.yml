@@ -15,114 +15,117 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [windows-latest, ubuntu-latest, macos-latest]
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # -------------------------------
-      # INSTALL for Ubuntu
-      # -------------------------------
-      - name: Install Linux deps
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt update
-          sudo apt install -y rpm libarchive-tools snapcraft
+      # ----------------------------------------------------
+      # GLOBAL CACHE (boost speed)
+      # ----------------------------------------------------
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
 
-      # -------------------------------
-      # INSTALL for Windows
-      # -------------------------------
-      - name: Install Windows Build Tools
-        if: matrix.os == 'windows-latest'
-        uses: microsoft/setup-msbuild@v2
+      - name: Cache electron + native modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/electron
+            ~/.cache/electron-builder
+            ./node_modules/.cache
+            ./node_modules/node-pty/build
+            ./node_modules/keytar/build
+            ./node_modules/ssh2/build
+          key: ${{ runner.os }}-electron-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-electron-
 
-      - name: Install VS Build Tools (C++)
+      # ----------------------------------------------------
+      # WINDOWS — install VS Build Tools
+      # ----------------------------------------------------
+      - name: Install VS Build Tools
         if: matrix.os == 'windows-latest'
         run: |
           choco install visualstudio2022buildtools --package-parameters `
             "--add Microsoft.VisualStudio.Workload.VCTools `
-            --add Microsoft.VisualStudio.Component.Windows11SDK.22000 `
+            --add Microsoft.VisualStudio.Component.Windows11SDK.22621 `
             --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
             --includeRecommended --quiet --norestart"
         shell: powershell
 
-      - name: Verify MSVC Installed
+      - name: Verify MSVC
         if: matrix.os == 'windows-latest'
         run: |
-          dir "C:\Program Files\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC"
+          echo "VC Tools:"
+          dir "C:\Program Files\Microsoft Visual Studio\2022\BuildTools\VC\Tools"
         shell: powershell
 
-      # -------------------------------
-      # Node setup
-      # -------------------------------
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
+      # ----------------------------------------------------
+      # LINUX build deps
+      # ----------------------------------------------------
+      - name: Install Linux deps
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt update
+          sudo apt install -y rpm snapcraft libsecret-1-dev dpkg fakeroot
 
+      # ----------------------------------------------------
+      # Install deps (super fast with cache)
+      # ----------------------------------------------------
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Build Renderer
+      - name: Build renderer
         run: npm run build:renderer
 
-      - name: Build Electron
+      - name: Build electron
         run: npm run build:electron
 
-      # -------------------------------
-      # Platform-specific build
-      # -------------------------------
-      - name: Build macOS
-        if: matrix.os == 'macos-latest'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run build:mac
-
-      - name: Build Ubuntu
-        if: matrix.os == 'ubuntu-latest'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run build:linux
-
+      # ----------------------------------------------------
+      # Build by platform
+      # ----------------------------------------------------
       - name: Build Windows
         if: matrix.os == 'windows-latest'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run build:win
 
-      # -------------------------------
-      # Upload artifacts
-      # -------------------------------
-      - uses: actions/upload-artifact@v4
-        if: matrix.os == 'windows-latest'
-        with:
-          name: windows
-          path: release/*
-
-      - uses: actions/upload-artifact@v4
+      - name: Build Linux
         if: matrix.os == 'ubuntu-latest'
-        with:
-          name: linux
-          path: release/*
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run build:linux
 
-      - uses: actions/upload-artifact@v4
+      - name: Build macOS
         if: matrix.os == 'macos-latest'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run build:mac
+
+      # ----------------------------------------------------
+      # Upload artifacts
+      # ----------------------------------------------------
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
-          name: mac
+          name: ${{ matrix.os }}
           path: release/*
 
-  # -----------------------------------
-  # Create Release
-  # -----------------------------------
-  create-release:
+  # --------------------------------------------------------
+  # RELEASE STEP
+  # --------------------------------------------------------
+  release:
     needs: build
     runs-on: ubuntu-latest
+
     if: startsWith(github.ref, 'refs/tags/')
 
     steps:
-      - name: Download all artifacts
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
@@ -132,7 +135,6 @@ jobs:
         with:
           files: artifacts/**/*
           tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
