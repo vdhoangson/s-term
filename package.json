@@ -99,31 +99,11 @@
         "deb",
         "AppImage",
         "rpm",
-        "pacman",
-        "snap"
+        "pacman"
       ],
       "icon": "build/icons/png",
       "executableName": "s-term",
       "category": "Development"
-    },
-    "snap": {
-      "confinement": "classic",
-      "grade": "stable",
-      "summary": "Modern SSH Terminal with SFTP support",
-      "plugs": [
-        "home",
-        "network",
-        "network-bind",
-        "ssh-keys",
-        "ssh-public-keys",
-        "desktop",
-        "desktop-legacy",
-        "x11",
-        "unity7",
-        "browser-support",
-        "pulseaudio",
-        "password-manager-service"
-      ]
     }
   },
   "dependencies": {

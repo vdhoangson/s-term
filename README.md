@@ -72,7 +72,7 @@ To build the application for production:
   ```bash
   npm run build:win   # Windows (nsis, portable, appx)
   npm run build:mac   # macOS (dmg, zip)
-  npm run build:linux # Linux (deb, rpm, snap, AppImage, pacman)
+  npm run build:linux # Linux (deb, rpm, AppImage, pacman)
   ```
 
 The build artifacts will be output to the `release` directory.
