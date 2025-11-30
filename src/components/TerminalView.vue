@@ -5,7 +5,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { Terminal } from '@xterm/xterm'
-import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
 
 const props = defineProps<{
@@ -14,7 +13,6 @@ const props = defineProps<{
 
 const terminalContainer = ref<HTMLElement | null>(null)
 let terminal: Terminal | null = null
-let fitAddon: FitAddon | null = null
 
 onMounted(() => {
   if (!terminalContainer.value) return
@@ -30,10 +28,10 @@ onMounted(() => {
     allowProposedApi: true,
   })
 
-  fitAddon = new FitAddon()
-  terminal.loadAddon(fitAddon)
-  terminal.open(terminalContainer.value)
-  fitAddon.fit()
+  // fitAddon = new FitAddon()
+  // terminal.loadAddon(fitAddon)
+  // terminal.open(terminalContainer.value)
+  // fitAddon.fit()
 
   // Handle resizing
   window.addEventListener('resize', handleResize)
@@ -59,8 +57,8 @@ onBeforeUnmount(() => {
 })
 
 function handleResize() {
-  if (!fitAddon || !terminal) return
-  fitAddon.fit()
+  if (!terminal) return
+  // fitAddon.fit()
   const { cols, rows } = terminal
   window.ipcRenderer.send('terminal:resize', props.sessionId, cols, rows)
 }
