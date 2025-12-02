@@ -93,8 +93,7 @@
       "target": [
         "deb",
         "AppImage",
-        "rpm",
-        "pacman"
+        "rpm"
       ],
       "icon": "build/icons/png",
       "executableName": "s-term",
