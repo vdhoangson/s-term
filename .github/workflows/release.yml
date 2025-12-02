@@ -52,9 +52,13 @@ jobs:
         run: |
           choco install visualstudio2022buildtools --package-parameters `
             "--add Microsoft.VisualStudio.Workload.VCTools `
-            --add Microsoft.VisualStudio.Component.VC.14.40.Spectre `
+            --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64.Spectre `
             --add Microsoft.VisualStudio.Component.Windows11SDK.22621 `
             --includeRecommended --quiet --norestart"
+
+      - name: Disable MSBuild node reuse
+        shell: cmd
+        run: setx MSBUILDDISABLENODEREUSE 1
 
       # ---------------------------------------
       # LINUX — minimal dependencies
