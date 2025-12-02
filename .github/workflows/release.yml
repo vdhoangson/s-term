@@ -56,10 +56,6 @@ jobs:
             --add Microsoft.VisualStudio.Component.Windows11SDK.22621 `
             --includeRecommended --quiet --norestart"
 
-      - name: Disable MSBuild node reuse
-        shell: cmd
-        run: setx MSBUILDDISABLENODEREUSE 1
-
       # ---------------------------------------
       # LINUX — minimal dependencies
       # ---------------------------------------
