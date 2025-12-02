@@ -77,18 +77,10 @@
     "win": {
       "target": [
         "nsis",
-        "portable",
-        "appx"
+        "portable"
       ],
       "icon": "build/icons/win/icon.ico",
       "artifactName": "STerm-${version}-${arch}.${ext}"
-    },
-    "appx": {
-      "applicationId": "STerm",
-      "identityName": "com.sterm.app",
-      "publisher": "CN=vdhoangson",
-      "displayName": "S-Term",
-      "backgroundColor": "#202020"
     },
     "nsis": {
       "oneClick": false,
