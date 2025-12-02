@@ -46,10 +46,6 @@ jobs:
       # ---------------------------------------
       # WINDOWS — minimal VS tools
       # ---------------------------------------
-      - name: Enable MSBuild reuse
-        shell: powershell
-        run: setx MSBUILDDISABLENODEREUSE 1
-
       - name: Install VS Build Tools
         if: matrix.os == 'windows-latest'
         shell: powershell
