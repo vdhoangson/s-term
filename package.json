@@ -31,6 +31,10 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "build": {
+    "electronDownload": {
+      "mirror": "https://npmmirror.com/mirrors/electron/",
+      "timeout": 600000
+    },
     "appId": "com.sterm.app",
     "productName": "STerm",
     "directories": {
