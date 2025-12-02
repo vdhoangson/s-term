@@ -52,7 +52,6 @@ jobs:
         run: |
           choco install visualstudio2022buildtools --package-parameters `
             "--add Microsoft.VisualStudio.Workload.VCTools `
-            --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64.Spectre `
             --add Microsoft.VisualStudio.Component.Windows11SDK.22621 `
             --includeRecommended --quiet --norestart"
 

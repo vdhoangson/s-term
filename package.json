@@ -31,6 +31,8 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "build": {
+    "npmRebuild": false,
+    "buildDependenciesFromSource": false,
     "electronDownload": {
       "mirror": "https://npmmirror.com/mirrors/electron/"
     },
