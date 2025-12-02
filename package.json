@@ -32,8 +32,7 @@
   },
   "build": {
     "electronDownload": {
-      "mirror": "https://npmmirror.com/mirrors/electron/",
-      "timeout": 600000
+      "mirror": "https://npmmirror.com/mirrors/electron/"
     },
     "appId": "com.sterm.app",
     "productName": "STerm",
