@@ -89,7 +89,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run build:win -- --parallel
+        run: npm run build:win
 
       - name: Build Linux
         if: matrix.os == 'ubuntu-latest'
