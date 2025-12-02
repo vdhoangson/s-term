@@ -14,6 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
 
@@ -21,67 +22,57 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ----------------------------------------------------
-      # GLOBAL CACHE (boost speed)
-      # ----------------------------------------------------
-      - name: Setup node
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
 
-      - name: Cache electron + native modules
+      # ---------------------------------------
+      # Global Caches (electron, native modules)
+      # ---------------------------------------
+      - name: Cache Electron + node-gyp
         uses: actions/cache@v4
         with:
           path: |
             ~/.cache/electron
             ~/.cache/electron-builder
+            ~/.cache/node-gyp
             ./node_modules/.cache
-            ./node_modules/node-pty/build
-            ./node_modules/keytar/build
-            ./node_modules/ssh2/build
-          key: ${{ runner.os }}-electron-${{ hashFiles('package-lock.json') }}
+          key: ${{ runner.os }}-cache-${{ hashFiles('package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-electron-
+            ${{ runner.os }}-cache-
 
-      # ----------------------------------------------------
-      # WINDOWS — install VS Build Tools
-      # ----------------------------------------------------
+      # ---------------------------------------
+      # WINDOWS — minimal VS tools
+      # ---------------------------------------
       - name: Install VS Build Tools
         if: matrix.os == 'windows-latest'
+        shell: powershell
         run: |
           choco install visualstudio2022buildtools --package-parameters `
             "--add Microsoft.VisualStudio.Workload.VCTools `
             --add Microsoft.VisualStudio.Component.Windows11SDK.22621 `
-            --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
             --includeRecommended --quiet --norestart"
-        shell: powershell
 
-      # ----------------------------------------------------
-      # LINUX deps — FULL VERSION
-      # ----------------------------------------------------
-      - name: Install Linux build deps
+      # ---------------------------------------
+      # LINUX — minimal dependencies
+      # ---------------------------------------
+      - name: Install Linux deps
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt update -y
           sudo apt install -y \
-            snapd \
-            fakeroot \
-            libarchive-tools \
-            ruby-full \
             rpm \
-            dpkg \
+            fakeroot \
             xz-utils \
+            dpkg \
             file
 
-          sudo systemctl start snapd
-          sudo systemctl start snapd.socket
-          sudo snap install snapcraft --classic
-
-      # ----------------------------------------------------
-      # Install deps
-      # ----------------------------------------------------
-      - name: Install dependencies
+      # ---------------------------------------
+      # Install node modules
+      # ---------------------------------------
+      - name: Install deps
         run: npm ci
 
       - name: Build renderer
@@ -90,9 +81,9 @@ jobs:
       - name: Build electron
         run: npm run build:electron
 
-      # ----------------------------------------------------
-      # Build per platform
-      # ----------------------------------------------------
+      # ---------------------------------------
+      # Per-platform build
+      # ---------------------------------------
       - name: Build Windows
         if: matrix.os == 'windows-latest'
         env:
@@ -111,17 +102,17 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run build:mac
 
-      # ----------------------------------------------------
+      # ---------------------------------------
       # Upload artifacts
-      # ----------------------------------------------------
+      # ---------------------------------------
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }}
           path: release/*
 
-  # --------------------------------------------------------
-  # RELEASE STEP
-  # --------------------------------------------------------
+  # -------------------------------------------
+  # Release publish
+  # -------------------------------------------
   release:
     needs: build
     runs-on: ubuntu-latest
