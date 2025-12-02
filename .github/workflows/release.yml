@@ -72,8 +72,7 @@ jobs:
             rpm \
             dpkg \
             xz-utils \
-            file \
-            bsdtar
+            file
 
           sudo systemctl start snapd
           sudo systemctl start snapd.socket
