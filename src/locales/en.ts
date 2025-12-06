@@ -64,6 +64,14 @@ export default {
       rename: 'Rename',
     },
     deleteConfirm: 'Delete "{name}"?',
+    errors: {
+      listFiles: 'Failed to List Files',
+      download: 'Download Failed',
+      upload: 'Upload Failed',
+      delete: 'Delete Failed',
+      rename: 'Rename Failed',
+      createFolder: 'Create Folder Failed',
+    },
   },
   toolbar: {
     theme: {
@@ -136,5 +144,6 @@ export default {
     loading: 'Loading...',
     error: 'Error',
     success: 'Success',
+    ok: 'OK',
   },
 }

@@ -28,10 +28,10 @@ onMounted(() => {
     allowProposedApi: true,
   })
 
-  // fitAddon = new FitAddon()
-  // terminal.loadAddon(fitAddon)
-  // terminal.open(terminalContainer.value)
-  // fitAddon.fit()
+  terminal.open(terminalContainer.value)
+
+  // FitAddon will be loaded after terminal is opened
+  // Note: We'll handle resize manually for now to avoid dimension issues
 
   // Handle resizing
   window.addEventListener('resize', handleResize)

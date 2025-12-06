@@ -80,6 +80,7 @@ export class SshSession extends EventEmitter implements Session {
 
       this.client.shell(shellOptions, (err: any, stream: any) => {
         if (err) {
+          this.emit('data', `\r\n\x1b[1;31m✖ Failed to open shell: \x1b[0m${err.message}\r\n\r\n`)
           this.emit('exit', { exitCode: 1, signal: 'ERROR' })
           return
         }
@@ -102,7 +103,23 @@ export class SshSession extends EventEmitter implements Session {
     })
 
     this.client.on('error', (err: any) => {
-      this.emit('data', `\r\nSSH Connection Error: ${err.message}\r\n`)
+      this.emit('data', '\r\n\x1b[1;31m╔═══════════════════════════════════════════╗\r\n')
+      this.emit('data', '\x1b[1;31m║     SSH CONNECTION ERROR                  ║\r\n')
+      this.emit('data', '\x1b[1;31m╚═══════════════════════════════════════════╝\x1b[0m\r\n')
+      this.emit('data', `\x1b[1;33m⚠  Error: \x1b[0m${err.message}\r\n`)
+      
+      // Provide helpful hints based on error type
+      if (err.message.includes('ECONNREFUSED')) {
+        this.emit('data', '\x1b[36m💡 Hint: Check if SSH service is running on the remote host\r\n')
+      } else if (err.message.includes('ENOTFOUND') || err.message.includes('getaddrinfo')) {
+        this.emit('data', '\x1b[36m💡 Hint: Check the hostname/IP address\r\n')
+      } else if (err.message.includes('ETIMEDOUT')) {
+        this.emit('data', '\x1b[36m💡 Hint: Check network connectivity and firewall settings\r\n')
+      } else if (err.message.includes('authentication')) {
+        this.emit('data', '\x1b[36m💡 Hint: Verify your username, password, or SSH key\r\n')
+      }
+      
+      this.emit('data', '\x1b[0m\r\n')
       this.emit('exit', { exitCode: 1, signal: 'ERROR' })
     })
 
@@ -113,7 +130,7 @@ export class SshSession extends EventEmitter implements Session {
     try {
       // Validate required fields
       if (!config.host) {
-        this.emit('data', '\r\nError: Host is required\r\n')
+        this.emit('data', '\r\n\x1b[1;31m✖ Error: Host is required\x1b[0m\r\n')
         this.emit('exit', { exitCode: 1, signal: 'ERROR' })
         return
       }
@@ -152,14 +169,15 @@ export class SshSession extends EventEmitter implements Session {
             connectConfig.privateKey = fs.readFileSync(config.privateKeyPath)
             console.log('Successfully read private key from:', config.privateKeyPath)
           } catch (e: any) {
-            this.emit('data', `\r\nError reading private key: ${e.message}\r\n`)
+            this.emit('data', `\r\n\x1b[1;31m✖ Error reading private key:\x1b[0m ${e.message}\r\n`)
+            this.emit('data', '\x1b[36m💡 Hint: Check if the key file exists and has correct permissions\x1b[0m\r\n\r\n')
             this.emit('exit', { exitCode: 1, signal: 'ERROR' })
             return
           }
         } else {
           this.emit(
             'data',
-            '\r\nError: Private key path or content is required for key authentication\r\n'
+            '\r\n\x1b[1;31m✖ Error: Private key path or content is required for key authentication\x1b[0m\r\n'
           )
           this.emit('exit', { exitCode: 1, signal: 'ERROR' })
           return
@@ -181,12 +199,15 @@ export class SshSession extends EventEmitter implements Session {
 
       this.emit(
         'data',
-        `\r\nConnecting to ${connectConfig.username}@${connectConfig.host}:${connectConfig.port}...\r\n`
+        `\r\n\x1b[1;32m⚡ Connecting to ${connectConfig.username}@${connectConfig.host}:${connectConfig.port}...\x1b[0m\r\n`
       )
       this.client.connect(connectConfig)
     } catch (err: any) {
       setTimeout(() => {
-        this.emit('data', `\r\nConnection failed: ${err.message}\r\n`)
+        this.emit('data', '\r\n\x1b[1;31m╔═══════════════════════════════════════════╗\r\n')
+        this.emit('data', '\x1b[1;31m║     CONNECTION FAILED                     ║\r\n')
+        this.emit('data', '\x1b[1;31m╚═══════════════════════════════════════════╝\x1b[0m\r\n')
+        this.emit('data', `\x1b[1;33m⚠  Error: \x1b[0m${err.message}\r\n\r\n`)
         this.emit('exit', { exitCode: 1, signal: 'ERROR' })
       }, 100)
     }

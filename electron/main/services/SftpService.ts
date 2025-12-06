@@ -49,21 +49,30 @@ export class SftpService {
     })
   }
 
-  private async ensureSftpConnected(sessionId: string): Promise<any> {
+  private async ensureSftpConnected(sessionId: string, retries = 5): Promise<any> {
     if (this.sftpConnections.has(sessionId)) {
       return this.sftpConnections.get(sessionId)
     }
 
-    const client = this.sshClients.get(sessionId)
+    // Retry logic for SSH client availability
+    let client = this.sshClients.get(sessionId)
+    let attempt = 0
+    
+    while (!client && attempt < retries) {
+      await new Promise(resolve => setTimeout(resolve, 200)) // Wait 200ms
+      client = this.sshClients.get(sessionId)
+      attempt++
+    }
+
     if (!client) {
-      throw new Error('SSH client not found for session')
+      throw new Error('SSH connection not ready. Please wait for the connection to establish.')
     }
 
     return new Promise((resolve, reject) => {
       client.sftp((err: any, sftp: any) => {
         if (err) {
           console.error('SFTP connection error:', err)
-          reject(err)
+          reject(new Error(`Failed to establish SFTP connection: ${err.message}`))
           return
         }
 

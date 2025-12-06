@@ -135,6 +135,14 @@
       :current-name="selectedFile?.filename || ''"
       @rename="confirmRename"
     />
+
+    <!-- Error Dialog -->
+    <ErrorDialog
+      v-model="showErrorDialog"
+      :title="errorTitle"
+      :message="errorMessage"
+      :details="errorDetails"
+    />
   </div>
 </template>
 
@@ -144,6 +152,7 @@ import { useI18n } from 'vue-i18n'
 import NewFolderDialog from './NewFolderDialog.vue'
 import DeleteConfirmDialog from './DeleteConfirmDialog.vue'
 import RenameDialog from './RenameDialog.vue'
+import ErrorDialog from './ErrorDialog.vue'
 
 const { t: $t } = useI18n()
 
@@ -175,6 +184,12 @@ const showDeleteDialog = ref(false)
 // Rename Dialog state
 const showRenameDialog = ref(false)
 
+// Error Dialog state
+const showErrorDialog = ref(false)
+const errorTitle = ref('')
+const errorMessage = ref('')
+const errorDetails = ref('')
+
 onMounted(async () => {
   await loadFiles()
 })
@@ -182,11 +197,11 @@ onMounted(async () => {
 async function loadFiles() {
   loading.value = true
   try {
-    // TODO: Call IPC to get SFTP file list
     const result = await window.ipcRenderer.invoke('sftp:list', props.sessionId, currentPath.value)
     files.value = result || []
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to load files:', error)
+    showError($t('sftp.errors.listFiles'), error?.message || String(error))
     files.value = []
   } finally {
     loading.value = false
@@ -227,15 +242,14 @@ async function downloadFile(file: FileInfo) {
   try {
     const remotePath = `${currentPath.value}/${file.filename}`.replace('//', '/')
     await window.ipcRenderer.invoke('sftp:download', props.sessionId, remotePath)
-    // TODO: Show success message
-  } catch (error) {
+  } catch (error: any) {
     console.error('Download failed:', error)
+    showError($t('sftp.errors.download'), error?.message || String(error), file.filename)
   }
 }
 
 async function uploadFile() {
   try {
-    // Open file picker
     const result = await window.electronAPI?.selectFile()
 
     if (result && !result.canceled && result.filePath) {
@@ -245,12 +259,11 @@ async function uploadFile() {
         : currentPath.value + '/'
 
       await window.ipcRenderer.invoke('sftp:upload', props.sessionId, result.filePath, remotePath)
-
-      // Reload files after upload
       await loadFiles()
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Upload failed:', error)
+    showError($t('sftp.errors.upload'), error?.message || String(error))
   } finally {
     loading.value = false
   }
@@ -263,8 +276,9 @@ async function createFolder(folderName: string) {
     const newPath = `${currentPath.value}/${folderName}`.replace('//', '/')
     await window.ipcRenderer.invoke('sftp:mkdir', props.sessionId, newPath)
     await loadFiles()
-  } catch (error) {
+  } catch (error: any) {
     console.error('Create folder failed:', error)
+    showError($t('sftp.errors.createFolder'), error?.message || String(error), folderName)
   }
 }
 
@@ -281,10 +295,15 @@ async function confirmDelete() {
     const remotePath = `${currentPath.value}/${selectedFile.value.filename}`.replace('//', '/')
     await window.ipcRenderer.invoke('sftp:delete', props.sessionId, remotePath)
     showDeleteDialog.value = false
+    const fileName = selectedFile.value.filename
     selectedFile.value = null
     await loadFiles()
-  } catch (error) {
+  } catch (error: any) {
     console.error('Delete failed:', error)
+    showDeleteDialog.value = false
+    const fileName = selectedFile.value?.filename || ''
+    selectedFile.value = null
+    showError($t('sftp.errors.delete'), error?.message || String(error), fileName)
   }
 }
 
@@ -303,8 +322,11 @@ async function confirmRename(newName: string) {
     await window.ipcRenderer.invoke('sftp:rename', props.sessionId, oldPath, newPath)
     selectedFile.value = null
     await loadFiles()
-  } catch (error) {
+  } catch (error: any) {
     console.error('Rename failed:', error)
+    const oldName = selectedFile.value?.filename || ''
+    selectedFile.value = null
+    showError($t('sftp.errors.rename'), error?.message || String(error), `${oldName} → ${newName}`)
   }
 }
 
@@ -341,6 +363,13 @@ function formatFileSize(bytes: number): string {
   const sizes = ['B', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
+}
+
+function showError(title: string, message: string, details?: string) {
+  errorTitle.value = title
+  errorMessage.value = message
+  errorDetails.value = details || ''
+  showErrorDialog.value = true
 }
 </script>
 

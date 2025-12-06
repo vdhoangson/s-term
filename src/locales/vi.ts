@@ -64,6 +64,14 @@ export default {
       rename: 'Đổi tên',
     },
     deleteConfirm: 'Xóa "{name}"?',
+    errors: {
+      listFiles: 'Không thể liệt kê tệp',
+      download: 'Tải xuống thất bại',
+      upload: 'Tải lên thất bại',
+      delete: 'Xóa thất bại',
+      rename: 'Đổi tên thất bại',
+      createFolder: 'Tạo thư mục thất bại',
+    },
   },
   toolbar: {
     theme: {
@@ -136,5 +144,6 @@ export default {
     loading: 'Đang tải...',
     error: 'Lỗi',
     success: 'Thành công',
+    ok: 'Đồng ý',
   },
 }

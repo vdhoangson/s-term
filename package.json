@@ -105,6 +105,7 @@
   "dependencies": {
     "@mdi/font": "^7.4.47",
     "@xterm/addon-clipboard": "^0.2.0-beta.119",
+    "@xterm/addon-fit": "^0.11.0-beta.136",
     "@xterm/addon-image": "^0.9.0-beta.136",
     "@xterm/addon-ligatures": "^0.10.0-beta.136",
     "@xterm/addon-progress": "^0.2.0-beta.42",
