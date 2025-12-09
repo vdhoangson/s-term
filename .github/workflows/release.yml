@@ -13,9 +13,6 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
 
-    env:
-      npm_config_msvs_args: '--p:SpectreMitigation=false'
-
     strategy:
       fail-fast: false
       matrix:
@@ -32,9 +29,9 @@ jobs:
           cache: 'npm'
 
       # ---------------------------------------
-      # Global Caches (electron, native modules)
+      # Cache electron + prebuild native modules
       # ---------------------------------------
-      - name: Cache Electron + node-gyp
+      - name: Cache Electron and node-gyp
         uses: actions/cache@v4
         with:
           path: |
@@ -42,24 +39,12 @@ jobs:
             ~/.cache/electron-builder
             ~/.cache/node-gyp
             ./node_modules/.cache
-          key: ${{ runner.os }}-cache-${{ hashFiles('package-lock.json') }}
+          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-cache-
+            ${{ runner.os }}-
 
       # ---------------------------------------
-      # WINDOWS — minimal VS tools
-      # ---------------------------------------
-      # - name: Install VS Build Tools
-      #   if: matrix.os == 'windows-latest'
-      #   shell: powershell
-      #   run: |
-      #     choco install visualstudio2022buildtools --package-parameters `
-      #       "--add Microsoft.VisualStudio.Workload.VCTools `
-      #       --add Microsoft.VisualStudio.Component.Windows11SDK.22621 `
-      #       --includeRecommended --quiet --norestart"
-
-      # ---------------------------------------
-      # LINUX — minimal dependencies
+      # Linux deps (minimal)
       # ---------------------------------------
       - name: Install Linux deps
         if: matrix.os == 'ubuntu-latest'
@@ -72,9 +57,6 @@ jobs:
             dpkg \
             file
 
-      # ---------------------------------------
-      # Install node modules
-      # ---------------------------------------
       - name: Install deps
         run: npm ci
 
@@ -89,24 +71,18 @@ jobs:
       # ---------------------------------------
       - name: Build Windows
         if: matrix.os == 'windows-latest'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run build:win
 
       - name: Build Linux
         if: matrix.os == 'ubuntu-latest'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run build:linux
 
       - name: Build macOS
         if: matrix.os == 'macos-latest'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run build:mac
 
       # ---------------------------------------
-      # Upload artifacts
+      # Upload artifacts (per OS)
       # ---------------------------------------
       - uses: actions/upload-artifact@v4
         with:
@@ -114,7 +90,7 @@ jobs:
           path: release/*
 
   # -------------------------------------------
-  # Release publish
+  # Release publish (single job)
   # -------------------------------------------
   release:
     needs: build

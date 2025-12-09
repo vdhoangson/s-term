@@ -20,22 +20,19 @@
     "start": "electron . --trace-warnings",
     "build": "npm run build:renderer && npm run build:electron && electron-builder",
     "pack": "npm run build:renderer && npm run build:electron && electron-builder --dir",
-    "build:win": "npm run build:renderer && npm run build:electron && electron-builder --win",
-    "build:mac": "npm run build:renderer && npm run build:electron && electron-builder --mac",
-    "build:linux": "npm run build:renderer && npm run build:electron && electron-builder --linux",
-    "build:all": "npm run build:renderer && npm run build:electron && electron-builder -mwl",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder -mwl",
     "format": "prettier --write \"src/**/*.{js,ts,vue,json,css,scss,md}\" \"electron/**/*.{js,ts}\"",
     "format:check": "prettier --check \"src/**/*.{js,ts,vue,json,css,scss,md}\" \"electron/**/*.{js,ts}\"",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "postinstall": "electron-builder install-app-deps"
+    "lint:fix": "eslint . --fix"
   },
   "build": {
     "npmRebuild": false,
     "buildDependenciesFromSource": false,
-    "electronDownload": {
-      "mirror": "https://npmmirror.com/mirrors/electron/"
-    },
+    "publish": "github",
     "appId": "com.sterm.app",
     "productName": "STerm",
     "directories": {
