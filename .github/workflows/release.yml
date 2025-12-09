@@ -110,6 +110,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: artifacts/**/*
+          overwrite_files: true
           draft: false
           make_latest: true
           tag_name: ${{ github.ref_name }}
