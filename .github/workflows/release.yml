@@ -31,12 +31,6 @@ jobs:
       # ---------------------------------------
       # Cache electron + prebuild native modules
       # ---------------------------------------
-      - name: Set Electron Mirrors
-        run: |
-          echo "ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/" >> $GITHUB_ENV
-          echo "ELECTRON_CUSTOM_DIR=electron" >> $GITHUB_ENV
-          echo "ELECTRON_CACHE=$HOME/.cache/electron" >> $GITHUB_ENV
-
       - name: Cache Electron and node-gyp
         uses: actions/cache@v4
         with:
@@ -48,6 +42,9 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-
+
+      - name: Disable Electron Download
+        run: echo "ELECTRON_SKIP_BINARY_DOWNLOAD=1" >> $GITHUB_ENV
 
       # ---------------------------------------
       # Linux deps (minimal)
