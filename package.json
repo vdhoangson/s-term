@@ -32,7 +32,7 @@
   "build": {
     "npmRebuild": false,
     "buildDependenciesFromSource": false,
-    "publish": "never",
+    "publish": null,
     "appId": "com.sterm.app",
     "productName": "STerm",
     "directories": {
