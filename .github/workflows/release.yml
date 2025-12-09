@@ -91,7 +91,6 @@ jobs:
         if: matrix.os == 'windows-latest'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ELECTRON_BUILDER_API_TIMEOUT: 900000
         run: npm run build:win
 
       - name: Build Linux

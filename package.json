@@ -52,13 +52,6 @@
       "**/*.node",
       "package.json"
     ],
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "vdhoangson",
-        "repo": "s-term"
-      }
-    ],
     "extraResources": [
       {
         "from": "resources",
