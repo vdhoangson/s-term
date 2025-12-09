@@ -31,6 +31,12 @@ jobs:
       # ---------------------------------------
       # Cache electron + prebuild native modules
       # ---------------------------------------
+      - name: Set Electron Mirrors
+        run: |
+          echo "ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/" >> $GITHUB_ENV
+          echo "ELECTRON_CUSTOM_DIR=electron" >> $GITHUB_ENV
+          echo "ELECTRON_CACHE=$HOME/.cache/electron" >> $GITHUB_ENV
+
       - name: Cache Electron and node-gyp
         uses: actions/cache@v4
         with:
@@ -56,12 +62,6 @@ jobs:
             xz-utils \
             dpkg \
             file
-
-      - name: Set Electron Mirrors
-        run: |
-          echo "ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/" >> $GITHUB_ENV
-          echo "ELECTRON_CUSTOM_DIR=electron" >> $GITHUB_ENV
-          echo "ELECTRON_CACHE=$HOME/.cache/electron" >> $GITHUB_ENV
 
       - name: Install deps
         run: npm ci
