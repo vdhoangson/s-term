@@ -57,6 +57,12 @@ jobs:
             dpkg \
             file
 
+      - name: Set Electron Mirrors
+        run: |
+          echo "ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/" >> $GITHUB_ENV
+          echo "ELECTRON_CUSTOM_DIR=electron" >> $GITHUB_ENV
+          echo "ELECTRON_CACHE=$HOME/.cache/electron" >> $GITHUB_ENV
+
       - name: Install deps
         run: npm ci
 
