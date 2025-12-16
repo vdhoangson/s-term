@@ -111,7 +111,6 @@ jobs:
         with:
           files: |
             artifacts/**/*.yml
-            artifacts/**/*.msi
             artifacts/**/*.exe
             artifacts/**/*.dmg
             artifacts/**/*.zip
