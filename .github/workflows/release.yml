@@ -46,9 +46,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            electron-builder --win --publish=always
+            npx electron-builder --win --publish=always
           elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            electron-builder --mac --publish=always
+            npx electron-builder --mac --publish=always
           else
-            electron-builder --linux --publish=always
+            npx electron-builder --linux --publish=always
           fi
