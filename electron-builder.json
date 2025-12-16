@@ -34,7 +34,7 @@
     "entitlementsInherit": "build/entitlements.mac.plist"
   },
   "win": {
-    "target": ["nsis", "portable"],
+    "target": ["nsis"],
     "icon": "build/icons/win/icon.ico",
     "artifactName": "sterm-${version}-${arch}.${ext}"
   },
@@ -57,6 +57,9 @@
       }
     },
     "category": "Development;Utility;TerminalEmulator;System"
+  },
+  "snap": {
+    "plugs": ["default", "system-files", "system-observe"]
   },
   "deb": {
     "depends": ["libappindicator3-1", "gnome-keyring", "libnotify4"]

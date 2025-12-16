@@ -43,9 +43,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-
 
-      - name: Disable Electron Download
-        run: echo "ELECTRON_SKIP_BINARY_DOWNLOAD=1" >> $GITHUB_ENV
-
       # ---------------------------------------
       # Linux deps (minimal)
       # ---------------------------------------
@@ -89,7 +86,7 @@ jobs:
       # ---------------------------------------
       - uses: actions/upload-artifact@v5
         with:
-          name: ${{ matrix.os }}
+          name: build-${{ matrix.os }}
           path: release/*
 
   # -------------------------------------------
@@ -110,8 +107,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/**/*.yml
-            artifacts/**/*.exe
+            artifacts/**/latest*.yml
+            artifacts/**/sterm*.exe
             artifacts/**/*.dmg
             artifacts/**/*.zip
             artifacts/**/*.AppImage
