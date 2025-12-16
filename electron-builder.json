@@ -4,21 +4,20 @@
   "compression": "normal",
   "npmRebuild": false,
   "buildDependenciesFromSource": false,
-  "publish": null,
+  "publish": [
+    {
+      "provider": "github",
+      "owner": "vdhoangson",
+      "repo": "s-term"
+    }
+  ],
   "directories": {
     "output": "release",
     "buildResources": "build"
   },
   "asar": true,
-  "asarUnpack": [
-    "dist/*.map",
-    "**/*.node"
-  ],
-  "files": [
-    "dist/**/*",
-    "dist-electron/**/*",
-    "package.json"
-  ],
+  "asarUnpack": ["dist/*.map", "**/*.node"],
+  "files": ["dist/**/*", "dist-electron/**/*", "package.json"],
   "extraResources": [
     {
       "from": "resources",
@@ -26,11 +25,7 @@
     }
   ],
   "mac": {
-    "publish": null,
-    "target": [
-      "dmg",
-      "zip"
-    ],
+    "target": ["dmg", "zip"],
     "category": "public.app-category.developer-tools",
     "icon": "build/icons/mac/icon.icns",
     "artifactName": "sterm-${version}-${arch}.${ext}",
@@ -39,10 +34,7 @@
     "entitlementsInherit": "build/entitlements.mac.plist"
   },
   "win": {
-    "target": [
-      "nsis",
-      "portable"
-    ],
+    "target": ["nsis", "portable"],
     "icon": "build/icons/win/icon.ico",
     "artifactName": "sterm-${version}-${arch}.${ext}"
   },
@@ -55,11 +47,7 @@
     "shortcutName": "STerm"
   },
   "linux": {
-    "target": [
-      "deb",
-      "AppImage",
-      "rpm"
-    ],
+    "target": ["deb", "AppImage", "rpm"],
     "executableArgs": ["--no-sandbox"],
     "icon": "build/icons/png",
     "artifactName": "sterm-${version}-${arch}.${ext}",
@@ -71,18 +59,10 @@
     "category": "Development;Utility;TerminalEmulator;System"
   },
   "deb": {
-    "depends": [
-      "libappindicator3-1",
-      "gnome-keyring",
-      "libnotify4"
-    ]
+    "depends": ["libappindicator3-1", "gnome-keyring", "libnotify4"]
   },
   "rpm": {
-    "depends": [
-      "libappindicator3-1",
-      "gnome-keyring",
-      "libnotify4"
-    ]
+    "depends": ["libappindicator3-1", "gnome-keyring", "libnotify4"]
   },
   "electronFuses": {
     "runAsNode": false,
