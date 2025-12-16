@@ -1,0 +1,92 @@
+{
+  "appId": "com.sterm.app",
+  "productName": "STerm",
+  "compression": "normal",
+  "npmRebuild": false,
+  "buildDependenciesFromSource": false,
+  "publish": null,
+  "directories": {
+    "output": "release",
+    "buildResources": "build"
+  },
+  "asar": true,
+  "asarUnpack": [
+    "dist/*.map",
+    "**/*.node"
+  ],
+  "files": [
+    "dist/**/*",
+    "dist-electron/**/*",
+    "package.json"
+  ],
+  "extraResources": [
+    {
+      "from": "resources",
+      "to": "resources"
+    }
+  ],
+  "mac": {
+    "publish": null,
+    "target": [
+      "dmg",
+      "zip"
+    ],
+    "category": "public.app-category.developer-tools",
+    "icon": "build/icons/mac/icon.icns",
+    "artifactName": "sterm-${version}-${arch}.${ext}",
+    "hardenedRuntime": true,
+    "entitlements": "build/entitlements.mac.plist",
+    "entitlementsInherit": "build/entitlements.mac.plist"
+  },
+  "win": {
+    "target": [
+      "nsis",
+      "portable"
+    ],
+    "icon": "build/icons/win/icon.ico",
+    "artifactName": "sterm-${version}-${arch}.${ext}"
+  },
+  "nsis": {
+    "oneClick": false,
+    "artifactName": "sterm-${version}-${arch}.${ext}",
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "STerm"
+  },
+  "linux": {
+    "target": [
+      "deb",
+      "AppImage",
+      "rpm"
+    ],
+    "executableArgs": ["--no-sandbox"],
+    "icon": "build/icons/png",
+    "artifactName": "sterm-${version}-${arch}.${ext}",
+    "desktop": {
+      "entry": {
+        "StartupWMClass": "sterm"
+      }
+    },
+    "category": "Development;Utility;TerminalEmulator;System"
+  },
+  "deb": {
+    "depends": [
+      "libappindicator3-1",
+      "gnome-keyring",
+      "libnotify4"
+    ]
+  },
+  "rpm": {
+    "depends": [
+      "libappindicator3-1",
+      "gnome-keyring",
+      "libnotify4"
+    ]
+  },
+  "electronFuses": {
+    "runAsNode": false,
+    "enableNodeOptionsEnvironmentVariable": false,
+    "enableNodeCliInspectArguments": false
+  }
+}

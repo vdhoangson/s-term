@@ -23,6 +23,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     resize: (sessionId: string, cols: number, rows: number) =>
       ipcRenderer.send('terminal:resize', sessionId, cols, rows),
     kill: (sessionId: string) => ipcRenderer.send('terminal:kill', sessionId),
+    getDefaultShell: () => ipcRenderer.invoke('terminal:get-default-shell'),
     onData: (sessionId: string, callback: (data: string) => void) => {
       const channel = `terminal:data:${sessionId}`
       ipcRenderer.on(channel, (_event, data) => callback(data))

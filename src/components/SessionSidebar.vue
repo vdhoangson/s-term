@@ -118,12 +118,8 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTerminalStore } from '../stores/terminal'
-import {
-  useConnectionStore,
-  type Connection,
-  type TreeNode,
-  type Folder,
-} from '../stores/connections'
+import { useConnectionStore } from '../stores/connections'
+import type { Connection, TreeNode, Folder } from '@/types/session'
 import NewSessionModal from './NewSessionModal.vue'
 import SessionTreeItem from './SessionTreeItem.vue'
 import draggable from 'vuedraggable'
@@ -205,10 +201,11 @@ function handleMoveItem(event: any, parentId: string) {
   // This is called by children when their list changes
 }
 
-async function createLocalSession() {
+async function createLocalSession(shell?: string) {
   const id = await window.ipcRenderer.invoke('terminal:create', {
     cols: 80,
     rows: 24,
+    shell,
   })
 
   terminalStore.addSession({
@@ -227,7 +224,7 @@ async function openSavedConnection(conn: Connection) {
   }
 
   if (conn.type === 'local') {
-    createLocalSession()
+    createLocalSession(conn.shell)
   } else {
     const id = await window.ipcRenderer.invoke('terminal:create', {
       cols: 80,
@@ -247,10 +244,10 @@ async function openSavedConnection(conn: Connection) {
 async function handleCreateConnection(data: any) {
   const newConnection: Connection = {
     id: data.id || crypto.randomUUID(),
-    name: data.name || `${data.username}@${data.host}`,
-    type: 'ssh',
+    name: data.name || (data.type === 'ssh' ? `${data.username}@${data.host}` : 'Local Terminal'),
+    type: data.type || 'ssh',
     host: data.host,
-    port: parseInt(data.port),
+    port: data.port ? parseInt(data.port) : undefined,
     username: data.username,
     authType: data.authType || 'password',
     password: data.password,
@@ -258,6 +255,10 @@ async function handleCreateConnection(data: any) {
     passphrase: data.passphrase,
     parentId: targetFolderId.value || data.parentId, // Use target folder if set
     order: 9999, // Put at end
+    // Local specific
+    shell: data.shell,
+    // SSH specific
+    x11Forwarding: data.x11Forwarding,
   }
 
   await connectionStore.saveConnection(newConnection)

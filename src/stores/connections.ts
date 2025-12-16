@@ -111,6 +111,7 @@ export const useConnectionStore = defineStore('connections', () => {
         order: newOrder,
         x11Forwarding: conn.x11Forwarding,
         x11Display: conn.x11Display,
+        shell: conn.shell,
       }
       await saveConnection(plainConn)
       return

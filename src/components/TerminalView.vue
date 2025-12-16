@@ -1,10 +1,11 @@
 <template>
-  <div ref="terminalContainer" class="terminal-container"></div>
+  <div ref="terminalContainer" class="terminal-container fill-height"></div>
 </template>
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { Terminal } from '@xterm/xterm'
+import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
 
 const props = defineProps<{
@@ -13,13 +14,21 @@ const props = defineProps<{
 
 const terminalContainer = ref<HTMLElement | null>(null)
 let terminal: Terminal | null = null
+let fitAddon: FitAddon | null = null
+let resizeObserver: ResizeObserver | null = null
 
 onMounted(() => {
   if (!terminalContainer.value) return
 
   terminal = new Terminal({
+    cols: 80,
+    rows: 24,
+    convertEol: true,
     cursorBlink: true,
+    scrollback: 5000,
+    disableStdin: false,
     fontSize: 14,
+    lineHeight: 1.2,
     fontFamily: 'Menlo, Monaco, "Courier New", monospace',
     theme: {
       background: '#1e1e1e',
@@ -28,20 +37,31 @@ onMounted(() => {
     allowProposedApi: true,
   })
 
+  fitAddon = new FitAddon()
+  terminal.loadAddon(fitAddon)
+
   terminal.open(terminalContainer.value)
 
-  // FitAddon will be loaded after terminal is opened
-  // Note: We'll handle resize manually for now to avoid dimension issues
+  resizeObserver = new ResizeObserver(() => {
+    if (!fitAddon || !terminal) return
+    fitAddon.fit()
 
-  // Handle resizing
-  window.addEventListener('resize', handleResize)
+    const { cols, rows } = terminal
+    window.ipcRenderer.send('terminal:resize', props.sessionId, cols, rows)
+  })
 
-  // Initial resize to send dimensions to backend
-  handleResize()
+  resizeObserver.observe(terminalContainer.value)
+
+  // Initial fit
+  fitAddon.fit()
 
   // Data from terminal (user input) -> backend
   terminal.onData(data => {
     window.ipcRenderer.send('terminal:write', props.sessionId, data)
+  })
+
+  terminal.onResize(({ cols, rows }) => {
+    window.ipcRenderer.send('terminal:resize', props.sessionId, cols, rows)
   })
 
   // Data from backend -> terminal
@@ -51,15 +71,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', handleResize)
   terminal?.dispose()
   window.ipcRenderer.removeAllListeners(`terminal:data:${props.sessionId}`)
 })
-
-function handleResize() {
-  if (!terminal) return
-  // fitAddon.fit()
-  const { cols, rows } = terminal
-  window.ipcRenderer.send('terminal:resize', props.sessionId, cols, rows)
-}
 </script>

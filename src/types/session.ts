@@ -22,6 +22,7 @@ export interface Connection {
   order?: number
   x11Forwarding?: boolean
   x11Display?: string
+  shell?: string // For local terminals
 }
 
 export interface Folder {

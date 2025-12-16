@@ -1,5 +1,5 @@
 <template>
-  <div class="sftp-browser d-flex flex-column fill-height">
+  <div class="fill-height">
     <!-- Toolbar (fixed) -->
     <v-sheet class="pa-2" style="flex-shrink: 0">
       <v-text-field
@@ -45,7 +45,7 @@
     </v-sheet>
 
     <!-- File List -->
-    <v-list density="compact" class="flex-grow-1 overflow-y-auto py-0">
+    <v-list density="compact" class="overflow-y-auto py-0">
       <v-list-item
         v-for="file in files"
         :key="file.filename"
@@ -372,14 +372,3 @@ function showError(title: string, message: string, details?: string) {
   showErrorDialog.value = true
 }
 </script>
-
-<style scoped>
-.file-item {
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.file-item:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-</style>

@@ -175,11 +175,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import type { Connection, SessionType } from '@/types/session'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import SessionTypeSelector, { type SessionType } from './connection/SessionTypeSelector.vue'
 import ModalActions from './connection/ModalActions.vue'
-import type { Connection } from '../stores/connections'
+import SessionTypeSelector from './connection/SessionTypeSelector.vue'
 
 const { t } = useI18n()
 
@@ -222,8 +222,10 @@ const currentTypeTitle = computed(
 )
 
 const isValid = computed(() => {
-  if (selectedType.value !== 'ssh') return false
-  return !!connection.value.host
+  if (selectedType.value === 'ssh') {
+    return !!connection.value.host
+  }
+  return false
 })
 
 // Load edit data

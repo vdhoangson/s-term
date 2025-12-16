@@ -42,3 +42,13 @@ button {
   user-select: text;
   -webkit-user-select: text;
 }
+
+/* SFTP Browser */
+.file-item {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.file-item:hover {
+  background-color: rgba(80, 80, 80, 0.2);
+}

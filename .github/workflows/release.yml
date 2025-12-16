@@ -110,6 +110,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
+            artifacts/**/*.yml
+            artifacts/**/*.msi
             artifacts/**/*.exe
             artifacts/**/*.dmg
             artifacts/**/*.zip

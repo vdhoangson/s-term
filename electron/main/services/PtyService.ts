@@ -4,21 +4,37 @@ import os from 'os'
 import { EventEmitter } from 'events'
 import { Session, SshSession } from './SshSession.js'
 
+function detectDefaultShell(): string {
+  if (os.platform() === 'win32') {
+    return 'powershell.exe'
+  }
+  return process.env.SHELL || 'bash'
+}
+
 class LocalSession extends EventEmitter implements Session {
   public id: string
   private ptyProcess: pty.IPty
 
-  constructor(id: string, options: { cols: number; rows: number; cwd?: string }) {
+  constructor(id: string, options: { cols: number; rows: number; cwd?: string; shell?: string }) {
     super()
     this.id = id
-    const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash'
+
+    let shell = options.shell
+
+    if (!shell) {
+      shell = detectDefaultShell()
+    }
 
     this.ptyProcess = pty.spawn(shell, [], {
       name: 'xterm-256color',
-      cols: options.cols || 80,
-      rows: options.rows || 24,
+      cols: options.cols ?? 80,
+      rows: options.rows ?? 24,
       cwd: options.cwd || process.env.HOME,
-      env: process.env as any,
+      env: {
+        ...process.env,
+        TERM: 'xterm-256color',
+        COLORTERM: 'truecolor',
+      } as any,
     })
 
     this.ptyProcess.onData(data => {
@@ -35,6 +51,7 @@ class LocalSession extends EventEmitter implements Session {
   }
 
   resize(cols: number, rows: number): void {
+    if (cols < 2 || rows < 2) return
     this.ptyProcess.resize(cols, rows)
   }
 

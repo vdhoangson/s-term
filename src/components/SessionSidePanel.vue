@@ -7,7 +7,7 @@
     class="border-s d-flex flex-column"
   >
     <!-- Title Bar (fixed) -->
-    <v-sheet class="pa-2 border-b" style="flex-shrink: 0">
+    <v-sheet class="pa-2 border-b">
       <div class="d-flex align-center justify-space-between">
         <div class="d-flex align-center">
           <v-icon icon="mdi-folder-network" color="amber" class="mr-2"></v-icon>
@@ -23,8 +23,8 @@
     </v-sheet>
 
     <!-- SFTP Browser (scrollable content) -->
-    <div class="flex-grow-1" style="overflow: hidden">
-      <SftpBrowser :session-id="sessionId" />
+    <div class="flex-grow-1 overflow-y-auto">
+      <SftpBrowser :id="'sftp-browser-' + sessionId" :session-id="sessionId" />
     </div>
   </v-navigation-drawer>
 </template>
