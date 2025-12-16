@@ -8,7 +8,7 @@
     {
       "provider": "github",
       "owner": "vdhoangson",
-      "repo": "s-term"
+      "releaseType": "release"
     }
   ],
   "directories": {
@@ -47,7 +47,7 @@
     "shortcutName": "STerm"
   },
   "linux": {
-    "target": ["deb", "AppImage", "rpm"],
+    "target": ["deb", "AppImage", "rpm", "snap"],
     "executableArgs": ["--no-sandbox"],
     "icon": "build/icons/png",
     "artifactName": "sterm-${version}-${arch}.${ext}",

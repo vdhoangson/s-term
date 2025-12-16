@@ -1,9 +1,10 @@
-name: Build & Publish
+name: Build and Release
 
 on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -11,50 +12,118 @@ permissions:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
+          cache: 'npm'
 
-      - name: Cache Electron
+      # ---------------------------------------
+      # Cache electron + prebuild native modules
+      # ---------------------------------------
+      - name: Cache Electron and node-gyp
         uses: actions/cache@v4
         with:
           path: |
             ~/.cache/electron
             ~/.cache/electron-builder
-          key: ${{ runner.os }}-electron
+            ~/.cache/node-gyp
+            ./node_modules/.cache
+          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-
 
-      - name: Linux deps
+      - name: Disable Electron Download
+        run: echo "ELECTRON_SKIP_BINARY_DOWNLOAD=1" >> $GITHUB_ENV
+
+      # ---------------------------------------
+      # Linux deps (minimal)
+      # ---------------------------------------
+      - name: Install Linux deps
         if: matrix.os == 'ubuntu-latest'
         run: |
-          sudo apt update
-          sudo apt install -y rpm fakeroot dpkg file
+          sudo apt update -y
+          sudo apt install -y \
+            rpm \
+            fakeroot \
+            xz-utils \
+            dpkg \
+            file
 
-      - run: npm ci
-      - run: npm run build:renderer
-      - run: npm run build:electron
+      - name: Install deps
+        run: npm ci
 
+      - name: Build renderer
+        run: npm run build:renderer
+
+      - name: Build electron
+        run: npm run build:electron
+
+      # ---------------------------------------
+      # Per-platform build
+      # ---------------------------------------
       - name: Build Windows
         if: matrix.os == 'windows-latest'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx electron-builder --win --publish=always
-
-      - name: Build macOS
-        if: matrix.os == 'macos-latest'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx electron-builder --mac --publish=always
+        run: npm run build:win
 
       - name: Build Linux
         if: matrix.os == 'ubuntu-latest'
+        run: npm run build:linux
+
+      - name: Build macOS
+        if: matrix.os == 'macos-latest'
+        run: npm run build:mac
+
+      # ---------------------------------------
+      # Upload artifacts (per OS)
+      # ---------------------------------------
+      - uses: actions/upload-artifact@v5
+        with:
+          name: ${{ matrix.os }}
+          path: release/*
+
+  # -------------------------------------------
+  # Release publish (single job)
+  # -------------------------------------------
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: artifacts
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/**/*.yml
+            artifacts/**/*.exe
+            artifacts/**/*.dmg
+            artifacts/**/*.zip
+            artifacts/**/*.AppImage
+            artifacts/**/*.deb
+            artifacts/**/*.rpm
+            artifacts/**/*.snap
+          overwrite_files: true
+          draft: false
+          make_latest: true
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx electron-builder --linux --publish=always
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
