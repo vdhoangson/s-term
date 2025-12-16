@@ -61,18 +61,11 @@
 </template>
 
 <script setup lang="ts">
+import { ISession } from '@/types/session';
 import { computed } from 'vue'
 
-interface Session {
-  id: string
-  title: string
-  type: 'local' | 'ssh'
-  connectionId?: string
-  monitoringEnabled?: boolean
-}
-
 const props = defineProps<{
-  sessions: Session[]
+  sessions: ISession[]
   activeSessionId: string | null
   sftpSidebarOpen: boolean
 }>()

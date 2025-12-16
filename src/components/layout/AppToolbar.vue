@@ -14,42 +14,7 @@
     <v-spacer></v-spacer>
 
     <!-- Theme Switcher -->
-    <v-menu>
-      <template #activator="{ props }">
-        <v-btn v-bind="props" icon variant="text" size="small">
-          <v-icon>{{ themeIcon }}</v-icon>
-        </v-btn>
-      </template>
-      <v-list density="compact">
-        <v-list-item
-          :active="themeStore.currentTheme === 'light'"
-          @click="themeStore.setTheme('light')"
-        >
-          <template #prepend>
-            <v-icon>mdi-white-balance-sunny</v-icon>
-          </template>
-          <v-list-item-title>{{ $t('toolbar.theme.light') }}</v-list-item-title>
-        </v-list-item>
-        <v-list-item
-          :active="themeStore.currentTheme === 'dark'"
-          @click="themeStore.setTheme('dark')"
-        >
-          <template #prepend>
-            <v-icon>mdi-moon-waning-crescent</v-icon>
-          </template>
-          <v-list-item-title>{{ $t('toolbar.theme.dark') }}</v-list-item-title>
-        </v-list-item>
-        <v-list-item
-          :active="themeStore.currentTheme === 'system'"
-          @click="themeStore.setTheme('system')"
-        >
-          <template #prepend>
-            <v-icon>mdi-cog</v-icon>
-          </template>
-          <v-list-item-title>{{ $t('toolbar.theme.system') }}</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-menu>
+    <ThemeSwitcher />
 
     <!-- Language Switcher -->
     <LanguageSwitcher />
@@ -62,6 +27,7 @@ import { useTheme } from 'vuetify'
 import { useThemeStore } from '@/stores/theme'
 import { useLocaleStore } from '@/stores/locale'
 import LanguageSwitcher from './LanguageSwitcher.vue'
+import ThemeSwitcher from './ThemeSwitcher.vue'
 
 defineProps<{
   sidebarOpen: boolean

@@ -66,7 +66,7 @@ Sau khi build hoàn thành:
 3. Verify các artifacts:
    - **Windows**: `S-Term-{version}-x64.exe`, `S-Term-{version}-ia32.exe`, portable version
    - **macOS**: `S-Term-{version}-x64.dmg`, `S-Term-{version}-arm64.dmg`, `.zip` files
-   - **Linux**: `.AppImage`, `.deb`, `.rpm`, `.snap`
+   - **Linux**: `.AppImage`, `.deb`, `.rpm`
 4. Download và test ít nhất một artifact từ mỗi platform
 
 ## Manual Release (Nếu cần)
@@ -108,13 +108,6 @@ npm run build:linux  # Linux
 
 - Workflow hiện tại build unsigned binaries
 - Để sign, cần thêm Apple Developer Certificate vào GitHub Secrets
-
-### Snap Build Failed (Linux)
-
-Snap build có thể fail do permissions. Nếu không cần snap:
-
-1. Mở `package.json`
-2. Xóa `snap` target khỏi `build.linux.target`
 
 ## Code Signing (Optional)
 

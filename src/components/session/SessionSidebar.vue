@@ -117,8 +117,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useTerminalStore } from '../stores/terminal'
-import { useConnectionStore } from '../stores/connections'
+import { useTerminalStore } from '../../stores/terminal'
+import { useConnectionStore } from '../../stores/connections'
 import type { Connection, TreeNode, Folder } from '@/types/session'
 import NewSessionModal from './NewSessionModal.vue'
 import SessionTreeItem from './SessionTreeItem.vue'

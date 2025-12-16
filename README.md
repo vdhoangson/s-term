@@ -7,7 +7,7 @@
 ## 🚀 Key Features
 
 - **Modern Terminal Emulator**: Built on `xterm.js`, supporting full terminal features, colors, and resizing.
-- **SSH & Local Shell**: Connect to remote servers via SSH (password or private key) or use your local shell.
+- **SSH Client**: Connect to remote servers via SSH (password or private key).
 - **SFTP Explorer**: Integrated file manager to browse, upload, and download files on remote servers.
 - **Session Management**: Organize your connections with folders and drag-and-drop sorting.
 - **Real-time Monitoring**: View CPU and RAM usage of your connected remote servers.
@@ -72,7 +72,7 @@ To build the application for production:
   ```bash
   npm run build:win   # Windows (nsis, portable, appx)
   npm run build:mac   # macOS (dmg, zip)
-  npm run build:linux # Linux (deb, rpm, AppImage, pacman)
+  npm run build:linux # Linux (deb, rpm, AppImage)
   ```
 
 The build artifacts will be output to the `release` directory.

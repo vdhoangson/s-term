@@ -119,9 +119,9 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type { TreeNode, Connection, Folder } from '../stores/connections'
+import type { TreeNode, Connection, Folder } from '../../stores/connections'
 import draggable from 'vuedraggable'
-import { useConnectionStore } from '../stores/connections'
+import { useConnectionStore } from '../../stores/connections'
 
 const props = defineProps<{
   item: TreeNode

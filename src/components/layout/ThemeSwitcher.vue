@@ -29,7 +29,7 @@
         @click="themeStore.setTheme('system')"
       >
         <template #prepend>
-          <v-icon>mdi-cog</v-icon>
+          <v-icon>mdi-theme-light-dark</v-icon>
         </template>
         <v-list-item-title>{{ $t('toolbar.theme.system') }}</v-list-item-title>
       </v-list-item>
@@ -40,7 +40,7 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
 import { useTheme } from 'vuetify'
-import { useThemeStore } from '../stores/theme'
+import { useThemeStore } from '../../stores/theme'
 
 const vuetifyTheme = useTheme()
 const themeStore = useThemeStore()
@@ -52,7 +52,7 @@ const themeIcon = computed(() => {
     case 'dark':
       return 'mdi-moon-waning-crescent'
     case 'system':
-      return 'mdi-cog'
+      return 'mdi-theme-light-dark'
   }
 })
 

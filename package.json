@@ -1,6 +1,6 @@
 {
   "name": "s-term",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Modern SSH Terminal with SFTP support",
   "author": {
     "name": "vdhoangson",
@@ -30,7 +30,10 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
+    "@electron/remote": "^2.1.3",
     "@mdi/font": "^7.4.47",
+    "@sentry/electron": "^7.5.0",
+    "@sentry/vue": "^10.29.0",
     "@xterm/addon-clipboard": "^0.2.0-beta.119",
     "@xterm/addon-fit": "^0.11.0-beta.136",
     "@xterm/addon-image": "^0.9.0-beta.136",

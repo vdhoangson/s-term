@@ -31,12 +31,12 @@
 </template>
 
 <script setup lang="ts">
-import { SessionType } from '@/types/session';
+import { ISessionType } from '@/types/session'
 import { ref, watch } from 'vue'
 
 const props = defineProps<{
   modelValue: string
-  types: SessionType[]
+  types: ISessionType[]
 }>()
 
 const emit = defineEmits<{

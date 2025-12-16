@@ -1,5 +1,11 @@
-
-export interface SessionType {
+export interface ISession {
+  id: string
+  title: string
+  type: 'local' | 'ssh'
+  connectionId?: string
+  monitoringEnabled?: boolean
+}
+export interface ISessionType {
   title: string
   value: string
   icon: string

@@ -175,11 +175,11 @@
 </template>
 
 <script setup lang="ts">
-import type { Connection, SessionType } from '@/types/session'
+import type { Connection, ISessionType } from '@/types/session'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import ModalActions from './connection/ModalActions.vue'
-import SessionTypeSelector from './connection/SessionTypeSelector.vue'
+import ModalActions from '../connection/ModalActions.vue'
+import SessionTypeSelector from '../connection/SessionTypeSelector.vue'
 
 const { t } = useI18n()
 
@@ -212,7 +212,7 @@ const connection = ref<Partial<Connection>>({
   x11Forwarding: false,
 })
 
-const sessionTypes: SessionType[] = [
+const sessionTypes: ISessionType[] = [
   { title: 'SSH', value: 'ssh', icon: 'mdi-key-variant', color: 'amber' },
 ]
 

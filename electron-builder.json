@@ -47,7 +47,7 @@
     "shortcutName": "STerm"
   },
   "linux": {
-    "target": ["deb", "AppImage", "rpm", "snap"],
+    "target": ["deb", "AppImage", "rpm"],
     "executableArgs": ["--no-sandbox"],
     "icon": "build/icons/png",
     "artifactName": "sterm-${version}-${arch}.${ext}",
@@ -57,9 +57,6 @@
       }
     },
     "category": "Development;Utility;TerminalEmulator;System"
-  },
-  "snap": {
-    "plugs": ["default", "system-files", "system-observe"]
   },
   "deb": {
     "depends": ["libappindicator3-1", "gnome-keyring", "libnotify4"]
