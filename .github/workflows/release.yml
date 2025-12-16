@@ -41,14 +41,20 @@ jobs:
       - run: npm run build:renderer
       - run: npm run build:electron
 
-      - name: Build & Publish
+      - name: Build Windows
+        if: matrix.os == 'windows-latest'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            npx electron-builder --win --publish=always
-          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            npx electron-builder --mac --publish=always
-          else
-            npx electron-builder --linux --publish=always
-          fi
+        run: npx electron-builder --win --publish=always
+
+      - name: Build macOS
+        if: matrix.os == 'macos-latest'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --mac --publish=always
+
+      - name: Build Linux
+        if: matrix.os == 'ubuntu-latest'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --linux --publish=always
