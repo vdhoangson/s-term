@@ -2,7 +2,7 @@
   <v-menu>
     <template #activator="{ props }">
       <v-btn v-bind="props" icon variant="text" size="small" class="mr-2">
-        <v-icon>{{ localeIcon }}</v-icon>
+        {{ localeStore.currentLocale === 'en' ? '🇬🇧' : '🇻🇳' }}
       </v-btn>
     </template>
     <v-list density="compact">
@@ -23,12 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useLocaleStore } from '@/stores/locale'
 
 const localeStore = useLocaleStore()
-
-const localeIcon = computed(() => {
-  return localeStore.currentLocale === 'vi' ? 'mdi-alpha-v-circle' : 'mdi-alpha-e-circle'
-})
 </script>

@@ -26,6 +26,8 @@ export default {
     noActiveSessions: 'Không có phiên làm việc',
     selectFromSidebar: 'Chọn một phiên từ thanh bên để bắt đầu',
     closeConfirm: 'Đóng "{title}"?\n\nThao tác này sẽ ngắt kết nối đang hoạt động.',
+    newSession: 'Tạo phiên mới',
+    newTerminal: 'Tạo terminal mới',
   },
   sftp: {
     title: 'Trình duyệt SFTP',

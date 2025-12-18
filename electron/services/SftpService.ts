@@ -14,7 +14,6 @@ export class SftpService {
   // Called by SshSession to register its client
   public registerSshClient(sessionId: string, client: any) {
     this.sshClients.set(sessionId, client)
-    console.log('Registered SSH client for SFTP:', sessionId)
   }
 
   // Called when SSH session closes

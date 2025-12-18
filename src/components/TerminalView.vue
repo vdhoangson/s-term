@@ -47,7 +47,7 @@ onMounted(() => {
     fitAddon.fit()
 
     const { cols, rows } = terminal
-    window.ipcRenderer.send('terminal:resize', props.sessionId, cols, rows)
+    window.electronAPI.session.resize(props.sessionId, cols, rows)
   })
 
   resizeObserver.observe(terminalContainer.value)
@@ -57,21 +57,23 @@ onMounted(() => {
 
   // Data from terminal (user input) -> backend
   terminal.onData(data => {
-    window.ipcRenderer.send('terminal:write', props.sessionId, data)
+    window.electronAPI.session.write(props.sessionId, data)
   })
 
   terminal.onResize(({ cols, rows }) => {
-    window.ipcRenderer.send('terminal:resize', props.sessionId, cols, rows)
+    window.electronAPI.session.resize(props.sessionId, cols, rows)
   })
 
   // Data from backend -> terminal
-  window.ipcRenderer.on(`terminal:data:${props.sessionId}`, (_event, data) => {
+  const cleanup = window.electronAPI.session.onData(props.sessionId, data => {
     terminal?.write(data)
+    // Send ack for flow control if it's a local session (optional but good)
+    window.ipcRenderer.send('session:ack-data', props.sessionId, data.length)
   })
-})
 
-onBeforeUnmount(() => {
-  terminal?.dispose()
-  window.ipcRenderer.removeAllListeners(`terminal:data:${props.sessionId}`)
+  onBeforeUnmount(() => {
+    cleanup()
+    terminal?.dispose()
+  })
 })
 </script>
