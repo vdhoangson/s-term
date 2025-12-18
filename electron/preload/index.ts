@@ -17,15 +17,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getSettings: () => ipcRenderer.invoke('store:get-settings'),
     setSettings: (settings: any) => ipcRenderer.invoke('store:set-settings', settings),
   },
-  terminal: {
-    create: (options: any) => ipcRenderer.invoke('terminal:create', options),
-    write: (sessionId: string, data: string) => ipcRenderer.send('terminal:write', sessionId, data),
+  session: {
+    create: (options: any) => ipcRenderer.invoke('session:create', options),
+    write: (sessionId: string, data: string) => ipcRenderer.send('session:write', sessionId, data),
     resize: (sessionId: string, cols: number, rows: number) =>
-      ipcRenderer.send('terminal:resize', sessionId, cols, rows),
-    kill: (sessionId: string) => ipcRenderer.send('terminal:kill', sessionId),
-    getDefaultShell: () => ipcRenderer.invoke('terminal:get-default-shell'),
+      ipcRenderer.send('session:resize', sessionId, cols, rows),
+    kill: (sessionId: string) => ipcRenderer.send('session:kill', sessionId),
     onData: (sessionId: string, callback: (data: string) => void) => {
-      const channel = `terminal:data:${sessionId}`
+      const channel = `session:data:${sessionId}`
       ipcRenderer.on(channel, (_event, data) => callback(data))
       return () => ipcRenderer.removeAllListeners(channel)
     },

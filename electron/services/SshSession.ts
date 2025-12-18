@@ -1,25 +1,15 @@
-import { EventEmitter } from 'events'
 import fs from 'fs'
 import net from 'net'
 import { Client } from 'ssh2'
+import { Session } from '../lib/sesstion.js'
 
-export interface Session extends EventEmitter {
-  id: string
-  write(data: string): void
-  resize(cols: number, rows: number): void
-  kill(): void
-}
-
-export class SshSession extends EventEmitter implements Session {
-  public id: string
+export class SshSession extends Session {
   private client: Client
-  private stream: any
   private sftpService: any
   private monitoringService: any
 
   constructor(id: string, config: any, sftpService?: any, monitoringService?: any) {
     super()
-    this.id = id
     this.client = new Client()
     this.sftpService = sftpService
     this.monitoringService = monitoringService
@@ -107,7 +97,7 @@ export class SshSession extends EventEmitter implements Session {
       this.emit('data', '\x1b[1;31m║     SSH CONNECTION ERROR                  ║\r\n')
       this.emit('data', '\x1b[1;31m╚═══════════════════════════════════════════╝\x1b[0m\r\n')
       this.emit('data', `\x1b[1;33m⚠  Error: \x1b[0m${err.message}\r\n`)
-      
+
       // Provide helpful hints based on error type
       if (err.message.includes('ECONNREFUSED')) {
         this.emit('data', '\x1b[36m💡 Hint: Check if SSH service is running on the remote host\r\n')
@@ -118,7 +108,7 @@ export class SshSession extends EventEmitter implements Session {
       } else if (err.message.includes('authentication')) {
         this.emit('data', '\x1b[36m💡 Hint: Verify your username, password, or SSH key\r\n')
       }
-      
+
       this.emit('data', '\x1b[0m\r\n')
       this.emit('exit', { exitCode: 1, signal: 'ERROR' })
     })
@@ -141,14 +131,6 @@ export class SshSession extends EventEmitter implements Session {
         username: config.username || 'root',
       }
 
-      // Debug log (can be removed in production)
-      console.log('SSH Connection Config:', {
-        host: connectConfig.host,
-        port: connectConfig.port,
-        username: connectConfig.username,
-        authType: config.authType,
-      })
-
       if (config.authType === 'password') {
         if (config.password) {
           connectConfig.password = config.password
@@ -170,7 +152,10 @@ export class SshSession extends EventEmitter implements Session {
             console.log('Successfully read private key from:', config.privateKeyPath)
           } catch (e: any) {
             this.emit('data', `\r\n\x1b[1;31m✖ Error reading private key:\x1b[0m ${e.message}\r\n`)
-            this.emit('data', '\x1b[36m💡 Hint: Check if the key file exists and has correct permissions\x1b[0m\r\n\r\n')
+            this.emit(
+              'data',
+              '\x1b[36m💡 Hint: Check if the key file exists and has correct permissions\x1b[0m\r\n\r\n'
+            )
             this.emit('exit', { exitCode: 1, signal: 'ERROR' })
             return
           }

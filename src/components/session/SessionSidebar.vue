@@ -202,7 +202,7 @@ function handleMoveItem(event: any, parentId: string) {
 }
 
 async function createLocalSession(shell?: string) {
-  const id = await window.ipcRenderer.invoke('terminal:create', {
+  const id = await window.electronAPI.session.create({
     cols: 80,
     rows: 24,
     shell,
@@ -226,7 +226,7 @@ async function openSavedConnection(conn: Connection) {
   if (conn.type === 'local') {
     createLocalSession(conn.shell)
   } else {
-    const id = await window.ipcRenderer.invoke('terminal:create', {
+    const id = await window.electronAPI.session.create({
       cols: 80,
       rows: 24,
       ...conn,
