@@ -68,7 +68,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppToolbar from './components/layout/AppToolbar.vue'
-import SessionSidebar from './components/session/SessionSidebar.vue'
+import SessionSidebar from './components/layout/SessionSidebar.vue'
 import SessionTabBar from './components/session/SessionTabBar.vue'
 import TerminalView from './components/TerminalView.vue'
 import SessionSidePanel from './components/session/SessionSidePanel.vue'

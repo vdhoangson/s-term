@@ -26,6 +26,8 @@ export default {
     noActiveSessions: 'No Active Sessions',
     selectFromSidebar: 'Select a session from the sidebar to start',
     closeConfirm: 'Close "{title}"?\n\nThis will terminate the active connection.',
+    newSession: 'New Session',
+    newTerminal: 'New Terminal',
   },
   sftp: {
     title: 'SFTP Browser',

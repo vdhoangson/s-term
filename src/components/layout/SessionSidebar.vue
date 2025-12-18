@@ -77,6 +77,16 @@
           </template>
         </draggable>
       </v-list>
+      <v-sheet class="pa-2 border-b">
+        <v-btn
+          block
+          variant="text"
+          prepend-icon="mdi-plus"
+          color="primary"
+          @click="createLocalSession('bash')"
+          >{{ t('session.newTerminal') }}</v-btn
+        >
+      </v-sheet>
     </div>
   </v-navigation-drawer>
 
@@ -107,8 +117,8 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn variant="text" @click="showFolderDialog = false">Cancel</v-btn>
-        <v-btn color="primary" @click="saveFolder">Save</v-btn>
+        <v-btn variant="text" @click="showFolderDialog = false">{{ t('cancel') }}</v-btn>
+        <v-btn color="primary" @click="saveFolder">{{ t('save') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -120,8 +130,8 @@ import { useI18n } from 'vue-i18n'
 import { useTerminalStore } from '../../stores/terminal'
 import { useConnectionStore } from '../../stores/connections'
 import type { Connection, TreeNode, Folder } from '@/types/session'
-import NewSessionModal from './NewSessionModal.vue'
-import SessionTreeItem from './SessionTreeItem.vue'
+import NewSessionModal from '../session/NewSessionModal.vue'
+import SessionTreeItem from '../session/SessionTreeItem.vue'
 import draggable from 'vuedraggable'
 
 const props = defineProps<{
@@ -210,7 +220,7 @@ async function createLocalSession(shell?: string) {
 
   terminalStore.addSession({
     id,
-    title: 'Local Terminal',
+    title: 'Terminal',
     type: 'local',
   })
 }
@@ -244,7 +254,7 @@ async function openSavedConnection(conn: Connection) {
 async function handleCreateConnection(data: any) {
   const newConnection: Connection = {
     id: data.id || crypto.randomUUID(),
-    name: data.name || (data.type === 'ssh' ? `${data.username}@${data.host}` : 'Local Terminal'),
+    name: data.name || (data.type === 'ssh' ? `${data.username}@${data.host}` : 'Terminal'),
     type: data.type || 'ssh',
     host: data.host,
     port: data.port ? parseInt(data.port) : undefined,
