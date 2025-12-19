@@ -5,7 +5,6 @@ import { MonitoringService } from '../services/MonitoringService'
 import { SftpService } from '../services/SftpService'
 import { PtyManager } from './pty'
 import { StoreService } from '../services/StoreService'
-import { Register } from '../main/register'
 
 export class Window {
   ready: Promise<void>
@@ -15,7 +14,6 @@ export class Window {
   private sftpService: SftpService
   private monitoringService: MonitoringService
   private storeService: StoreService = new StoreService()
-  private register: Register = new Register()
 
   constructor() {
     this.sftpService = new SftpService()

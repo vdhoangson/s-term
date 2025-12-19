@@ -2,6 +2,7 @@ import { app } from 'electron'
 import '../lib/sentry'
 import { Window } from '../lib/window.js'
 import { createAppMenu } from './menu.js'
+import { Register } from './register.js'
 
 let application: Window | null = null
 
@@ -17,6 +18,7 @@ function createWindow() {
 // App Events
 // ------------------------------
 app.whenReady().then(() => {
+  Register.init()
   createWindow()
 
   // Create application menu
