@@ -2,27 +2,33 @@
   <v-app>
     <AppToolbar
       :sidebar-open="connectionSidebarOpen"
+      :sessions="store.sessions"
+      :active-session-id="store.activeSessionId"
+      :sftp-sidebar-open="sftpSidebarOpen"
       @toggle-sidebar="connectionSidebarOpen = !connectionSidebarOpen"
+      @select-session="store.setActiveSession"
+      @close-session="closeSession"
+      @toggle-monitoring="toggleMonitoring"
+      @toggle-sftp="sftpSidebarOpen = !sftpSidebarOpen"
     />
 
-    <SessionSidebar v-model="connectionSidebarOpen" />
-    <!-- Main Content Area - Scrollable -->
-    <v-main>
-      <!-- Right SFTP Sidebar -->
-      <SessionSidePanel
-        v-if="store.activeSessionId && activeSession?.type === 'ssh'"
-        v-model="sftpSidebarOpen"
-        :session-id="store.activeSessionId"
-      />
+    <!-- Main Content Area - Not Scrollable -->
+    <v-main class="fill-height overflow-hidden">
+      <SessionSidebar v-model="connectionSidebarOpen" />
+
       <!-- Terminal Views -->
       <template
         v-if="store.sessions.length > 0"
         v-for="session in store.sessions"
         :key="session.id"
       >
-        <div v-show="store.activeSessionId === session.id" class="fill-height">
-          <TerminalView :session-id="session.id" />
-        </div>
+        <TerminalView
+          v-show="store.activeSessionId === session.id"
+          :session-id="session.id"
+          :is-active="store.activeSessionId === session.id"
+          @reconnect="handleReconnect(session.id)"
+          @close="closeSession(session.id)"
+        />
       </template>
       <!-- Empty State -->
       <v-container v-else class="d-flex align-center justify-center fill-height">
@@ -32,18 +38,14 @@
           <div class="text-body-2 mt-2">{{ $t('session.selectFromSidebar') }}</div>
         </div>
       </v-container>
-    </v-main>
 
-    <!-- Tab Bar - Fixed at top -->
-    <SessionTabBar
-      :sessions="store.sessions"
-      :active-session-id="store.activeSessionId"
-      :sftp-sidebar-open="sftpSidebarOpen"
-      @select-session="store.setActiveSession"
-      @close-session="closeSession"
-      @toggle-monitoring="toggleMonitoring"
-      @toggle-sftp="sftpSidebarOpen = !sftpSidebarOpen"
-    />
+      <!-- Right SFTP Sidebar -->
+      <SessionSidePanel
+        v-if="store.activeSessionId && activeSession?.type === 'ssh'"
+        v-model="sftpSidebarOpen"
+        :session-id="store.activeSessionId"
+      />
+    </v-main>
 
     <!-- Monitoring Panel (Footer) - Fixed at bottom -->
     <MonitoringPanel
@@ -61,6 +63,9 @@
 
     <!-- Settings Modal -->
     <SettingsModal v-model="settingsModalOpen" />
+
+    <!-- Global Snackbar -->
+    <AppSnackbar />
   </v-app>
 </template>
 
@@ -69,7 +74,6 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppToolbar from './components/layout/AppToolbar.vue'
 import SessionSidebar from './components/layout/SessionSidebar.vue'
-import SessionTabBar from './components/session/SessionTabBar.vue'
 import TerminalView from './components/TerminalView.vue'
 import SessionSidePanel from './components/session/SessionSidePanel.vue'
 import MonitoringPanel from './components/layout/MonitoringPanel.vue'
@@ -79,6 +83,7 @@ import AboutModal from './components/AboutModal.vue'
 import SettingsModal from './components/session/SettingsModal.vue'
 import { onMounted, onUnmounted } from 'vue'
 import { useSettingsStore } from './stores/settings'
+import AppSnackbar from './components/common/AppSnackbar.vue'
 
 const { t } = useI18n()
 const store = useTerminalStore()
@@ -99,6 +104,24 @@ function toggleMonitoring() {
   if (activeSession.value && store.activeSessionId) {
     const newValue = !monitoringEnabled.value
     store.setMonitoringEnabled(store.activeSessionId, newValue)
+  }
+}
+
+async function handleReconnect(sessionId: string) {
+  const session = store.sessions.find(s => s.id === sessionId)
+  if (!session || !session.config) return
+
+  try {
+    // Kill old session
+    window.ipcRenderer.send('session:kill', sessionId)
+
+    // Create new session with same config
+    const newId = await window.electronAPI.session.create(session.config)
+
+    // Update in store
+    store.updateSessionId(sessionId, newId)
+  } catch (error) {
+    console.error('Failed to reconnect:', error)
   }
 }
 

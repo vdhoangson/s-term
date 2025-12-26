@@ -1,20 +1,25 @@
 <template>
-  <v-app-bar
+  <div
     v-if="sessions.length > 0"
-    :elevation="8"
-    color="grey-darken-4"
-    class="align-center"
-    height="40"
+    class="d-flex align-center flex-grow-1 mx-4"
+    style="overflow: hidden"
   >
     <!-- Session Tabs -->
     <v-tabs
       :model-value="activeSessionId"
       density="compact"
-      color="primary"
+      show-arrows
+      variant="flat"
       class="flex-grow-1"
-      @update:model-value="$emit('select-session', $event)"
+      @update:model-value="$emit('select-session', $event as string)"
     >
-      <v-tab v-for="session in sessions" :key="session.id" :value="session.id" class="text-none">
+      <v-tab
+        v-for="session in sessions"
+        :key="session.id"
+        :value="session.id"
+        :color="activeSessionId === session.id ? 'white' : ''"
+        :class="{ 'opacity-70': activeSessionId !== session.id }"
+      >
         {{ session.title }}
         <v-icon
           end
@@ -36,9 +41,10 @@
         <v-btn
           v-bind="tooltipProps"
           :icon="monitoringEnabled ? 'mdi-monitor' : 'mdi-monitor-off'"
-          :color="monitoringEnabled ? 'primary' : 'grey'"
-          variant="text"
+          :color="monitoringEnabled ? 'white' : 'white'"
+          :variant="monitoringEnabled ? 'flat' : 'text'"
           size="small"
+          class="mr-1"
           @click="$emit('toggle-monitoring')"
         />
       </template>
@@ -50,18 +56,19 @@
         <v-btn
           v-bind="tooltipProps"
           :icon="sftpSidebarOpen ? 'mdi-folder-network' : 'mdi-folder-network-outline'"
-          :color="sftpSidebarOpen ? 'amber' : 'grey'"
-          variant="text"
+          :color="sftpSidebarOpen ? 'amber' : 'white'"
+          :variant="sftpSidebarOpen ? 'flat' : 'text'"
           size="small"
+          class="mr-2"
           @click="$emit('toggle-sftp')"
         />
       </template>
     </v-tooltip>
-  </v-app-bar>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ISession } from '@/types/session';
+import { ISession } from '@/types/session'
 import { computed } from 'vue'
 
 const props = defineProps<{

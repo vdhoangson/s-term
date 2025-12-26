@@ -62,9 +62,9 @@ watch(
   newTheme => {
     if (newTheme === 'system') {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      vuetifyTheme.global.name.value = prefersDark ? 'dark' : 'light'
+      vuetifyTheme.change(prefersDark ? 'dark' : 'light')
     } else {
-      vuetifyTheme.global.name.value = newTheme
+      vuetifyTheme.change(newTheme)
     }
   },
   { immediate: true }
@@ -74,7 +74,7 @@ watch(
 const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
 mediaQuery.addEventListener('change', e => {
   if (themeStore.currentTheme === 'system') {
-    vuetifyTheme.global.name.value = e.matches ? 'dark' : 'light'
+    vuetifyTheme.change(e.matches ? 'dark' : 'light')
   }
 })
 </script>

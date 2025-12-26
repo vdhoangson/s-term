@@ -3,7 +3,7 @@
     :model-value="modelValue"
     permanent
     location="right"
-    width="350"
+    width="300"
     class="border-s d-flex flex-column"
   >
     <!-- Title Bar (fixed) -->

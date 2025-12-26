@@ -48,10 +48,11 @@ export interface TreeNode {
   order?: number
 }
 
-export interface TerminalSession {
+export interface ITerminalSession {
   id: string
   title: string
   type: 'local' | 'ssh'
   connectionId?: string // ID of the connection that created this session
   monitoringEnabled?: boolean // Monitoring state
+  config?: any // Configuration used to create the session
 }

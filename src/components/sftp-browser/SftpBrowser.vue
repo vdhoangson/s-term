@@ -1,5 +1,5 @@
 <template>
-  <div class="fill-height">
+  <div ref="containerRef" class="fill-height" style="position: relative">
     <!-- Toolbar (fixed) -->
     <v-sheet class="pa-2" style="flex-shrink: 0">
       <v-text-field
@@ -75,7 +75,7 @@
       <!-- Context Menu -->
       <v-menu
         v-model="showContextMenu"
-        :style="{ position: 'fixed', left: contextMenuX + 'px', top: contextMenuY + 'px' }"
+        :style="{ left: contextMenuX + 'px', top: contextMenuY + 'px' }"
       >
         <v-list density="compact">
           <v-list-item
@@ -173,6 +173,7 @@ const loading = ref(false)
 const showNewFolderDialog = ref(false)
 
 // Context Menu state
+const containerRef = ref<HTMLElement | null>(null)
 const showContextMenu = ref(false)
 const contextMenuX = ref(0)
 const contextMenuY = ref(0)
@@ -232,8 +233,39 @@ function showFileContextMenu(event: MouseEvent, file: FileInfo) {
   event.preventDefault()
   selectedFile.value = file
   showContextMenu.value = false // Close any open menu first
-  contextMenuX.value = event.clientX
-  contextMenuY.value = event.clientY
+
+  const menuWidth = 160 // Estimated width of context menu
+  const menuHeight = 150 // Estimated height of context menu
+
+  let x = event.clientX
+  let y = event.clientY
+
+  if (containerRef.value) {
+    const rect = containerRef.value.getBoundingClientRect()
+
+    // Ensure menu doesn't go beyond right edge
+    if (x + menuWidth > rect.right) {
+      x = rect.right - menuWidth
+    }
+
+    // Ensure menu doesn't go beyond bottom edge
+    if (y + menuHeight > rect.bottom) {
+      y = rect.bottom - menuHeight
+    }
+
+    // Ensure menu doesn't go beyond left edge
+    if (x < rect.left) {
+      x = rect.left
+    }
+
+    // Ensure menu doesn't go beyond top edge
+    if (y < rect.top) {
+      y = rect.top
+    }
+  }
+
+  contextMenuX.value = x
+  contextMenuY.value = y
   showContextMenu.value = true
 }
 

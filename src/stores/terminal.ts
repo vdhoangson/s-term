@@ -1,12 +1,12 @@
-import { TerminalSession } from '@/types/session'
+import { ITerminalSession } from '@/types/session'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 export const useTerminalStore = defineStore('terminal', () => {
-  const sessions = ref<TerminalSession[]>([])
+  const sessions = ref<ITerminalSession[]>([])
   const activeSessionId = ref<string | null>(null)
 
-  function addSession(session: TerminalSession) {
+  function addSession(session: ITerminalSession) {
     sessions.value.push(session)
     activeSessionId.value = session.id
   }
@@ -33,6 +33,16 @@ export const useTerminalStore = defineStore('terminal', () => {
     }
   }
 
+  function updateSessionId(oldId: string, newId: string) {
+    const index = sessions.value.findIndex(s => s.id === oldId)
+    if (index !== -1) {
+      sessions.value[index].id = newId
+      if (activeSessionId.value === oldId) {
+        activeSessionId.value = newId
+      }
+    }
+  }
+
   return {
     sessions,
     activeSessionId,
@@ -40,5 +50,6 @@ export const useTerminalStore = defineStore('terminal', () => {
     removeSession,
     setActiveSession,
     setMonitoringEnabled,
+    updateSessionId,
   }
 })

@@ -1,6 +1,6 @@
 <template>
   <!-- Main Sidebar Content -->
-  <v-navigation-drawer v-model="isOpen" width="300">
+  <v-navigation-drawer v-model="isOpen" width="300" location="left" permanent>
     <div class="d-flex flex-column h-100">
       <!-- Quick Connect -->
       <v-sheet class="pa-2 border-b">
@@ -222,6 +222,11 @@ async function createLocalSession(shell?: string) {
     id,
     title: 'Terminal',
     type: 'local',
+    config: {
+      cols: 80,
+      rows: 24,
+      shell,
+    },
   })
 }
 
@@ -247,6 +252,11 @@ async function openSavedConnection(conn: Connection) {
       title: conn.name,
       type: 'ssh',
       connectionId: conn.id, // Track which connection created this session
+      config: {
+        cols: 80,
+        rows: 24,
+        ...conn,
+      },
     })
   }
 }

@@ -13,6 +13,10 @@ export interface IElectronAPI {
     resize: (sessionId: string, cols: number, rows: number) => void
     kill: (sessionId: string) => void
     onData: (sessionId: string, callback: (data: string) => void) => () => void
+    onExit: (
+      sessionId: string,
+      callback: (data: { exitCode: number; signal: string }) => void
+    ) => () => void
   }
   updater: {
     checkForUpdates: () => Promise<void>

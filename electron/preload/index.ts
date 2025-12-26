@@ -28,6 +28,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.on(channel, (_event, data) => callback(data))
       return () => ipcRenderer.removeAllListeners(channel)
     },
+    onExit: (sessionId: string, callback: (data: { exitCode: number; signal: string }) => void) => {
+      const channel = `session:exit:${sessionId}`
+      ipcRenderer.on(channel, (_event, data) => callback(data))
+      return () => ipcRenderer.removeAllListeners(channel)
+    },
   },
   updater: {
     checkForUpdates: () => ipcRenderer.invoke('updater:check-for-updates'),
