@@ -1,6 +1,6 @@
 {
   "name": "s-term",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Modern SSH Terminal with SFTP support",
   "author": {
     "name": "vdhoangson",
