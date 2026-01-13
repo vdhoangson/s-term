@@ -97,15 +97,55 @@ export class LocalSession extends Session {
   constructor(id: string, options: any) {
     super()
 
-    const shell = options.shell || (os.platform() === 'win32' ? 'powershell.exe' : 'bash')
+    let shell = options.shell
 
-    this.pty = nodePTY.spawn(shell, [], {
-      name: 'xterm-256color',
-      cols: options.cols || 80,
-      rows: options.rows || 24,
-      cwd: process.env.HOME || process.env.USERPROFILE,
-      env: process.env as any,
-    })
+    if (!shell) {
+      if (os.platform() === 'win32') {
+        shell = this.getWindowsShell()
+      } else {
+        shell = process.env.SHELL || '/bin/bash'
+      }
+    }
+
+    // Ensure shell exists
+    if (os.platform() === 'win32' && !shell.endsWith('.exe')) {
+      // If just "powershell", try to find it
+      if (shell === 'powershell') {
+        shell = this.getWindowsShell()
+      }
+    }
+
+    console.log(`[LocalSession] Spawning shell: ${shell}`)
+
+    try {
+      this.pty = nodePTY.spawn(shell, [], {
+        name: 'xterm-256color',
+        cols: options.cols || 80,
+        rows: options.rows || 24,
+        cwd: process.env.HOME || process.env.USERPROFILE,
+        env: process.env as any,
+      })
+    } catch (error) {
+      console.error(`[LocalSession] Failed to spawn shell '${shell}':`, error)
+      // Fallback for windows if powershell fails
+      if (os.platform() === 'win32' && shell !== 'cmd.exe') {
+        console.log('[LocalSession] Falling back to cmd.exe')
+        try {
+          this.pty = nodePTY.spawn('cmd.exe', [], {
+            name: 'xterm-256color',
+            cols: options.cols || 80,
+            rows: options.rows || 24,
+            cwd: process.env.HOME || process.env.USERPROFILE,
+            env: process.env as any,
+          })
+        } catch (retryError) {
+          console.error('[LocalSession] Failed to spawn fallback shell:', retryError)
+          throw retryError
+        }
+      } else {
+        throw error
+      }
+    }
 
     this.outputQueue = new PTYDataQueue(this.pty, data => {
       this.emit('data', data.toString())
@@ -139,5 +179,21 @@ export class LocalSession extends Session {
   // Needed for flow control acknowledgement
   ackData(length: number): void {
     this.outputQueue.ack(length)
+  }
+
+  private getWindowsShell(): string {
+    const powerShellPath = 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
+    const pwshPath = 'C:\\Program Files\\PowerShell\\7\\pwsh.exe'
+    const cmdPath = process.env.COMSPEC || 'cmd.exe'
+
+    if (require('fs').existsSync(pwshPath)) {
+      return pwshPath
+    }
+
+    if (require('fs').existsSync(powerShellPath)) {
+      return powerShellPath
+    }
+
+    return cmdPath
   }
 }

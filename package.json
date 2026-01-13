@@ -13,7 +13,7 @@
   "type": "commonjs",
   "scripts": {
     "dev:renderer": "vite",
-    "dev:electron": "wait-on tcp:5173 && cross-env ELECTRON_START_URL=http://localhost:5173 electron . --trace-warnings",
+    "dev:electron": "wait-on tcp:5173 && npm run build:electron && cross-env ELECTRON_START_URL=http://localhost:5173 electron . --trace-warnings",
     "dev": "concurrently \"npm run dev:renderer\" \"npm run dev:electron\"",
     "build:electron": "tsc -p tsconfig.electron.json",
     "build:renderer": "vite build",
