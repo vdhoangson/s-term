@@ -8,7 +8,7 @@ export const useConnectionStore = defineStore('connections', () => {
 
   const connectionTree = computed(() => {
     const nodes: TreeNode[] = []
-    
+
     // Convert folders to nodes
     Object.values(folders.value).forEach(folder => {
       nodes.push({
@@ -18,7 +18,7 @@ export const useConnectionStore = defineStore('connections', () => {
         children: [],
         data: folder,
         parentId: folder.parentId || null,
-        order: folder.order || 0
+        order: folder.order || 0,
       })
     })
 
@@ -30,7 +30,7 @@ export const useConnectionStore = defineStore('connections', () => {
         type: 'connection',
         data: conn,
         parentId: conn.parentId || null,
-        order: conn.order || 0
+        order: conn.order || 0,
       })
     })
 
@@ -139,6 +139,6 @@ export const useConnectionStore = defineStore('connections', () => {
     deleteConnection,
     saveFolder,
     deleteFolder,
-    moveItem
+    moveItem,
   }
 })

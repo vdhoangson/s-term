@@ -56,7 +56,7 @@ export class SftpService {
     // Retry logic for SSH client availability
     let client = this.sshClients.get(sessionId)
     let attempt = 0
-    
+
     while (!client && attempt < retries) {
       await new Promise(resolve => setTimeout(resolve, 200)) // Wait 200ms
       client = this.sshClients.get(sessionId)
@@ -200,9 +200,13 @@ export class SftpService {
     })
   }
 
-  private async uploadFile(sessionId: string, localPath: string, remotePath: string): Promise<void> {
+  private async uploadFile(
+    sessionId: string,
+    localPath: string,
+    remotePath: string
+  ): Promise<void> {
     const sftp = await this.ensureSftpConnected(sessionId)
-    
+
     const fileName = path.basename(localPath)
     const fullRemotePath = path.posix.join(remotePath, fileName)
 
