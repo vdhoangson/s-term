@@ -1,32 +1,24 @@
 <template>
-  <v-navigation-drawer
-    :model-value="modelValue"
-    permanent
-    location="right"
-    width="300"
-    class="border-s d-flex flex-column"
-  >
-    <!-- Title Bar (fixed) -->
-    <v-sheet class="pa-2 border-b">
-      <div class="d-flex align-center justify-space-between">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-folder-network" color="amber" class="mr-2"></v-icon>
-          <span class="text-body-2 font-weight-bold">{{ $t('sftp.title') }}</span>
-        </div>
-        <v-btn
-          icon="mdi-close"
-          variant="text"
-          size="x-small"
-          @click="$emit('update:modelValue', false)"
-        ></v-btn>
-      </div>
-    </v-sheet>
+  <section class="st-block st-sftp" :aria-label="$t('sftp.title')">
+    <div class="st-block-header">
+      <v-icon icon="mdi-folder-network" size="16" class="st-block-icon" />
+      <span class="st-block-title">{{ $t('sftp.title') }}</span>
+      <span class="st-spacer"></span>
+      <button
+        class="st-icon-btn"
+        :aria-label="$t('common.close')"
+        :title="$t('common.close')"
+        @click="$emit('update:modelValue', false)"
+      >
+        <v-icon icon="mdi-close" size="16" />
+      </button>
+    </div>
 
     <!-- SFTP Browser (scrollable content) -->
-    <div class="flex-grow-1 overflow-y-auto">
+    <div class="st-sftp__body">
       <SftpBrowser :id="'sftp-browser-' + sessionId" :session-id="sessionId" />
     </div>
-  </v-navigation-drawer>
+  </section>
 </template>
 
 <script setup lang="ts">
@@ -41,3 +33,15 @@ defineEmits<{
   'update:modelValue': [value: boolean]
 }>()
 </script>
+
+<style scoped>
+.st-sftp {
+  flex: 1 1 0;
+}
+
+.st-sftp__body {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+}
+</style>

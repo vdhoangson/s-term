@@ -28,6 +28,8 @@ export default {
     closeConfirm: 'Đóng "{title}"?\n\nThao tác này sẽ ngắt kết nối đang hoạt động.',
     newSession: 'Tạo phiên mới',
     newTerminal: 'Tạo terminal mới',
+    tabs: 'Phiên',
+    closeTab: 'Đóng tab {title}',
   },
   sftp: {
     title: 'Trình duyệt SFTP',
@@ -81,8 +83,11 @@ export default {
       dark: 'Tối',
       system: 'Hệ thống',
     },
+    themeLabel: 'Đổi giao diện',
+    languageLabel: 'Đổi ngôn ngữ',
   },
   monitoring: {
+    title: 'Giám sát',
     toggle: 'Bật/Tắt giám sát',
     metrics: {
       cpu: 'CPU',
@@ -92,6 +97,14 @@ export default {
       disk: 'Ổ đĩa',
       username: 'Người dùng',
     },
+  },
+  widgets: {
+    label: 'Widget',
+    hosts: 'Kết nối',
+    sftp: 'SFTP',
+    sysinfo: 'Giám sát',
+    settings: 'Cài đặt',
+    about: 'Giới thiệu',
   },
   modal: {
     title: {
@@ -147,5 +160,19 @@ export default {
     error: 'Lỗi',
     success: 'Thành công',
     ok: 'Đồng ý',
+  },
+  updater: {
+    checking: 'Đang kiểm tra cập nhật...',
+    pleaseWait: 'Vui lòng đợi',
+    available: 'Có bản cập nhật mới!',
+    availableMessage: 'Đã có phiên bản {version}. Bạn có muốn tải xuống không?',
+    downloading: 'Đang tải bản cập nhật...',
+    progress: '{percent}% - {transferred} MB / {total} MB',
+    ready: 'Bản cập nhật đã sẵn sàng!',
+    readyMessage: 'Đã tải xuống phiên bản {version}. Khởi động lại để cài đặt.',
+    error: 'Lỗi cập nhật',
+    download: 'Tải xuống',
+    install: 'Cài đặt & Khởi động lại',
+    later: 'Để sau',
   },
 }

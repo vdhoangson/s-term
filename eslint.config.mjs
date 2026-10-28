@@ -1,9 +1,9 @@
-import js from '@eslint/js';
-import pluginVue from 'eslint-plugin-vue';
-import * as parserVue from 'vue-eslint-parser';
-import tseslint from '@typescript-eslint/eslint-plugin';
-import tsparser from '@typescript-eslint/parser';
-import prettierConfig from '@vue/eslint-config-prettier';
+import js from '@eslint/js'
+import pluginVue from 'eslint-plugin-vue'
+import * as parserVue from 'vue-eslint-parser'
+import tseslint from '@typescript-eslint/eslint-plugin'
+import tsparser from '@typescript-eslint/parser'
+import prettierConfig from '@vue/eslint-config-prettier'
 
 export default [
   // Ignore patterns
@@ -14,7 +14,9 @@ export default [
       'dist-electron/**',
       'release/**',
       'build/**',
+      'coverage/**',
       '*.config.js',
+      '*.config.mjs',
       '*.config.ts',
     ],
   },
@@ -152,6 +154,14 @@ export default [
     },
   },
 
+  // TypeScript already checks undefined identifiers (typescript-eslint recommendation)
+  {
+    files: ['**/*.ts', '**/*.vue'],
+    rules: {
+      'no-undef': 'off',
+    },
+  },
+
   // Prettier config (should be last)
   prettierConfig,
-];
+]

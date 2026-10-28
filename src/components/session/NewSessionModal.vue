@@ -13,9 +13,12 @@
       <v-card-text class="pa-3">
         <!-- SSH Content -->
         <div v-if="selectedType === 'ssh'">
-          <v-sheet class="pa-3 bg-transparent rounded" style="border-color: #555 !important">
+          <v-sheet
+            class="pa-3 bg-transparent rounded"
+            style="border-color: var(--st-border) !important"
+          >
             <div class="d-flex align-center mb-3">
-              <v-icon icon="mdi-key-variant" color="amber" size="small" class="mr-2"></v-icon>
+              <v-icon icon="mdi-key-variant" color="primary" size="small" class="mr-2"></v-icon>
               <span class="text-body-2 font-weight-bold">{{ $t('modal.tabs.connection') }}</span>
             </div>
 
@@ -111,7 +114,7 @@
                       icon="mdi-folder-open"
                       variant="text"
                       size="small"
-                      color="amber"
+                      color="primary"
                       @click="selectKeyFile"
                     ></v-btn>
                   </template>
@@ -142,7 +145,7 @@
                   hide-details
                 >
                   <template #prepend>
-                    <v-icon icon="mdi-window-restore" size="small" color="blue"></v-icon>
+                    <v-icon icon="mdi-window-restore" size="small" color="primary"></v-icon>
                   </template>
                 </v-switch>
               </v-col>
@@ -213,7 +216,7 @@ const connection = ref<Partial<Connection>>({
 })
 
 const sessionTypes: ISessionType[] = [
-  { title: 'SSH', value: 'ssh', icon: 'mdi-key-variant', color: 'amber' },
+  { title: 'SSH', value: 'ssh', icon: 'mdi-key-variant', color: 'primary' },
 ]
 
 const currentTypeIcon = computed(() => sessionTypes.find(t => t.value === selectedType.value)?.icon)

@@ -1,9 +1,14 @@
 <template>
   <v-menu>
     <template #activator="{ props }">
-      <v-btn v-bind="props" icon variant="text" size="small">
-        <v-icon>{{ themeIcon }}</v-icon>
-      </v-btn>
+      <button
+        v-bind="props"
+        class="st-icon-btn"
+        :aria-label="$t('toolbar.themeLabel')"
+        :title="$t('toolbar.themeLabel')"
+      >
+        <v-icon :icon="themeIcon" size="18" />
+      </button>
     </template>
     <v-list density="compact">
       <v-list-item
@@ -51,7 +56,7 @@ const themeIcon = computed(() => {
       return 'mdi-white-balance-sunny'
     case 'dark':
       return 'mdi-moon-waning-crescent'
-    case 'system':
+    default:
       return 'mdi-theme-light-dark'
   }
 })

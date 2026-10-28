@@ -22,7 +22,13 @@
           <div
             v-if="isSelected"
             class="position-absolute"
-            style="bottom: 0; left: 0; right: 0; height: 2px; background-color: #4caf50"
+            style="
+              bottom: 0;
+              left: 0;
+              right: 0;
+              height: 2px;
+              background-color: rgb(var(--v-theme-primary));
+            "
           ></div>
         </v-btn>
       </v-slide-group-item>
