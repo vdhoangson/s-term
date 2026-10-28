@@ -33,6 +33,12 @@ export const useTerminalStore = defineStore('terminal', () => {
     }
   }
 
+  async function createLocalSession(shell?: string) {
+    const config = { cols: 80, rows: 24, shell }
+    const id = await window.electronAPI.session.create(config)
+    addSession({ id, title: 'Terminal', type: 'local', config })
+  }
+
   function updateSessionId(oldId: string, newId: string) {
     const index = sessions.value.findIndex(s => s.id === oldId)
     if (index !== -1) {
@@ -50,6 +56,7 @@ export const useTerminalStore = defineStore('terminal', () => {
     removeSession,
     setActiveSession,
     setMonitoringEnabled,
+    createLocalSession,
     updateSessionId,
   }
 })

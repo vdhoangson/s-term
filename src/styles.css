@@ -1,11 +1,113 @@
 /* global styles */
+:root {
+  /* No webfonts are bundled (offline app): Inter / JetBrains Mono are used only if installed. */
+  --st-font-ui: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --st-font-mono: 'JetBrains Mono', Menlo, Monaco, 'Courier New', monospace;
+  --st-metal: linear-gradient(
+    135deg,
+    #7a5a12 0%,
+    #e9c766 38%,
+    #fff1b8 50%,
+    #d4af37 62%,
+    #8c6a1c 100%
+  );
+}
+
+.v-theme--dark {
+  --st-bg: #09090a;
+  --st-panel: #111113;
+  --st-panel-header: #141416;
+  --st-border: #232327;
+  --st-border-soft: #1c1c1f;
+  --st-text: #ece9e2;
+  --st-muted: #9a968c;
+  --st-sub: #a9a190;
+  --st-gold: #d4af37;
+  --st-gold-text: #f2d27a;
+  --st-gold-tint: rgba(212, 175, 55, 0.1);
+  --st-input-bg: #0c0c0d;
+  --st-track: #1f1f23;
+  --st-ok: #7cc66a;
+  --st-meter: linear-gradient(90deg, #9c7a22, #f2d27a);
+  --st-spark-fill: rgba(212, 175, 55, 0.14);
+  --st-tab-bg: #17150f;
+  --st-tab-border: rgba(212, 175, 55, 0.45);
+  --st-chip-bg: #1e1b12;
+  --st-chip-border: #3a3220;
+  --st-chip-text: #d8c690;
+  --st-term-bg: #0d0d0e;
+  --st-term-header: #141310;
+  --st-term-header-border: #2a261a;
+  --st-focus-border: #c9a43e;
+  --st-ring: rgba(212, 175, 55, 0.12);
+  --st-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  --st-scroll: rgba(154, 150, 140, 0.28);
+  --st-scroll-hover: rgba(212, 175, 55, 0.5);
+}
+
+.v-theme--light {
+  --st-bg: #f3f0e8;
+  --st-panel: #ffffff;
+  --st-panel-header: #faf8f2;
+  --st-border: #ddd5c3;
+  --st-border-soft: #e6e0d2;
+  --st-text: #1d1b16;
+  --st-muted: #6b665b;
+  --st-sub: #74613a;
+  --st-gold: #b8901f;
+  --st-gold-text: #8a6510;
+  --st-gold-tint: rgba(212, 175, 55, 0.16);
+  --st-input-bg: #f7f4ec;
+  --st-track: #eee8da;
+  --st-ok: #4e9a3a;
+  --st-meter: linear-gradient(90deg, #9c7a22, #e9c766);
+  --st-spark-fill: rgba(212, 175, 55, 0.2);
+  --st-tab-bg: #fff8e1;
+  --st-tab-border: rgba(184, 144, 31, 0.55);
+  --st-chip-bg: #fff4d6;
+  --st-chip-border: #e8d9a8;
+  --st-chip-text: #6e5413;
+  --st-term-bg: #fdfcf8;
+  --st-term-header: #fbf5e3;
+  --st-term-header-border: #eadfc0;
+  --st-focus-border: #b8901f;
+  --st-ring: rgba(184, 144, 31, 0.16);
+  --st-shadow: 0 8px 30px rgba(80, 60, 10, 0.08);
+  --st-scroll: rgba(107, 102, 91, 0.3);
+  --st-scroll-hover: rgba(184, 144, 31, 0.6);
+}
+
 html,
-body {
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
-    'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+body,
+.v-application,
+.v-overlay-container,
+:is(
+  .text-h1,
+  .text-h2,
+  .text-h3,
+  .text-h4,
+  .text-h5,
+  .text-h6,
+  .text-subtitle-1,
+  .text-subtitle-2,
+  .text-body-1,
+  .text-body-2,
+  .text-button,
+  .text-caption,
+  .text-overline
+) {
+  font-family: var(--st-font-ui);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Vuetify's reset forces a scrollbar; the app shell is 100vh with inner scrolling. */
+html {
+  overflow: hidden;
+}
+
+a {
+  color: var(--st-gold-text);
 }
 
 button {
@@ -13,26 +115,148 @@ button {
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 5px;
+  background: var(--st-scroll, rgba(128, 128, 128, 0.35));
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: var(--st-scroll-hover, rgba(128, 128, 128, 0.6));
 }
 
+/* Blocks (Wave-style panels) */
+.st-block {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--st-border);
+  border-radius: 10px;
+  background: var(--st-panel);
+  color: var(--st-text);
+}
+
+.st-block-header {
+  display: flex;
+  flex: 0 0 36px;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 8px 0 12px;
+  border-bottom: 1px solid var(--st-border-soft);
+  background: var(--st-panel-header);
+}
+
+.st-block--focused {
+  border-color: var(--st-focus-border);
+  background: var(--st-term-bg);
+  box-shadow:
+    0 0 0 3px var(--st-ring),
+    var(--st-shadow);
+}
+
+.st-block--focused > .st-block-header {
+  border-bottom-color: var(--st-term-header-border);
+  background: var(--st-term-header);
+}
+
+.st-block-title {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.st-block-title--gold {
+  color: var(--st-gold-text);
+}
+
+.st-block-sub {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--st-muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.st-block-icon {
+  color: var(--st-gold);
+}
+
+.st-spacer {
+  flex: 1;
+}
+
+.st-icon-btn {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--st-muted);
+  cursor: pointer;
+}
+
+.st-icon-btn:hover {
+  background: var(--st-gold-tint);
+  color: var(--st-gold-text);
+}
+
+.st-btn-gold {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 36px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--st-metal);
+  color: #1a1405;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.st-btn-gold:hover {
+  filter: brightness(1.08);
+}
+
+.st-icon-btn:focus-visible,
+.st-btn-gold:focus-visible {
+  outline: 2px solid var(--st-gold);
+  outline-offset: 1px;
+}
+
+/* Terminal */
 .terminal-container {
   width: 100%;
   height: 100%;
-  background-color: #1e1e1e;
+  background-color: var(--st-term-bg, #0d0d0e);
   overflow: hidden;
   user-select: text;
   -webkit-user-select: text;
+}
+
+.terminal-container .xterm .xterm-viewport {
+  background-color: transparent;
+}
+
+/* FitAddon subtracts the .xterm padding, so padding here keeps fit() correct. */
+.terminal-container .xterm {
+  padding: 8px 10px;
 }
 
 /* SFTP Browser */
@@ -42,5 +266,5 @@ button {
 }
 
 .file-item:hover {
-  background-color: rgba(80, 80, 80, 0.2);
+  background-color: var(--st-gold-tint);
 }

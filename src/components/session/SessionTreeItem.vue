@@ -9,7 +9,7 @@
       @click="folderOpen = !folderOpen"
     >
       <template #prepend>
-        <v-icon :icon="folderOpen ? 'mdi-folder-open' : 'mdi-folder'" color="amber" />
+        <v-icon :icon="folderOpen ? 'mdi-folder-open' : 'mdi-folder'" color="primary" />
       </template>
       <template #append>
         <v-menu @click.stop>
@@ -90,7 +90,7 @@
     <template #prepend>
       <v-icon
         :icon="isSshConnection(item.data) ? 'mdi-key-variant' : 'mdi-console'"
-        :color="isSshConnection(item.data) ? 'amber' : 'grey'"
+        :color="isSshConnection(item.data) ? 'primary' : 'grey'"
         size="small"
       ></v-icon>
     </template>
@@ -166,6 +166,8 @@ watch(
 
 function onDragChange(event: any) {
   // Update the item's children
+  // Intentional: keeps the parent tree in sync during drag; persistence goes through updateListOrder
+  // eslint-disable-next-line vue/no-mutating-props
   props.item.children = localChildren.value
 
   if (event.moved || event.added) {
@@ -181,11 +183,25 @@ function updateListOrder(nodes: TreeNode[], parentId: string | null) {
 </script>
 
 <style scoped>
-.folder-item :deep(.v-list-item__prepend) .v-icon {
-  color: #ffc107;
+.folder-item :deep(.v-list-item-title) {
+  color: var(--st-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
 }
 
 .connection-item {
   min-height: 32px !important;
+  border-radius: 7px;
+}
+
+.connection-item.v-list-item--active {
+  background: var(--st-gold-tint);
+  color: var(--st-gold-text);
+}
+
+.connection-item.v-list-item--active :deep(.v-list-item__overlay) {
+  opacity: 0;
 }
 </style>

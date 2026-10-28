@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- Sentry SDK/electron modules are loaded conditionally by process type */
 const { init } =
   process.type === 'browser'
     ? require('@sentry/electron/main')
@@ -18,7 +19,8 @@ if (process.env.NODE_ENV !== 'development') {
   init({
     dsn: SENTRY_DSN,
     release,
-    enableNative: true,
+    // v8 sends user IP by default; keep v7 behavior
+    dataCollection: { userInfo: false },
     beforeSend(event: any) {
       if (event.request?.data?.includes('password')) {
         return null

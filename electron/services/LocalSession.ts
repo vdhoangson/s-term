@@ -1,5 +1,6 @@
 import * as nodePTY from 'node-pty'
 import os from 'os'
+import fs from 'fs'
 import { Session } from '../lib/sesstion.js'
 import { UTF8Splitter } from '../lib/utfSplitter.js'
 import { Subject } from 'rxjs'
@@ -186,11 +187,11 @@ export class LocalSession extends Session {
     const pwshPath = 'C:\\Program Files\\PowerShell\\7\\pwsh.exe'
     const cmdPath = process.env.COMSPEC || 'cmd.exe'
 
-    if (require('fs').existsSync(pwshPath)) {
+    if (fs.existsSync(pwshPath)) {
       return pwshPath
     }
 
-    if (require('fs').existsSync(powerShellPath)) {
+    if (fs.existsSync(powerShellPath)) {
       return powerShellPath
     }
 

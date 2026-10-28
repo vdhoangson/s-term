@@ -25,8 +25,9 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, computed } from 'vue'
-import { Terminal } from '@xterm/xterm'
+import { onBeforeUnmount, onMounted, ref, computed, watch } from 'vue'
+import { useTheme } from 'vuetify'
+import { Terminal, type ITheme } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
 import { useSnackbarStore } from '@/stores/snackbar'
@@ -41,6 +42,42 @@ const emit = defineEmits<{
   close: []
 }>()
 
+const terminalThemes: Record<'dark' | 'light', ITheme> = {
+  dark: {
+    background: '#0D0D0E',
+    foreground: '#D9D6CF',
+    cursor: '#F2D27A',
+    selectionBackground: 'rgba(212,175,55,0.3)',
+  },
+  light: {
+    background: '#FDFCF8',
+    foreground: '#2A2722',
+    cursor: '#B8901F',
+    selectionBackground: 'rgba(184,144,31,0.25)',
+    // Default ANSI white/yellow are unreadable on a light background
+    black: '#2A2722',
+    red: '#B3261E',
+    green: '#3D7A1E',
+    yellow: '#8A6510',
+    blue: '#2F5E8C',
+    magenta: '#8E3B8E',
+    cyan: '#1D7A82',
+    white: '#6B665B',
+    brightBlack: '#6B665B',
+    brightRed: '#D32F2F',
+    brightGreen: '#4E9A3A',
+    brightYellow: '#B8901F',
+    brightBlue: '#3F78B3',
+    brightMagenta: '#A64CA6',
+    brightCyan: '#2A9AA3',
+    brightWhite: '#2A2722',
+  },
+}
+
+const vuetifyTheme = useTheme()
+const currentTerminalTheme = () =>
+  terminalThemes[vuetifyTheme.global.name.value === 'light' ? 'light' : 'dark']
+
 const terminalContainer = ref<HTMLElement | null>(null)
 const isConnected = ref(true)
 let terminal: Terminal | null = null
@@ -49,6 +86,13 @@ let resizeObserver: ResizeObserver | null = null
 
 const showOverlay = computed(() => !isConnected.value)
 const snackbar = useSnackbarStore()
+
+watch(
+  () => vuetifyTheme.global.name.value,
+  () => {
+    if (terminal) terminal.options.theme = currentTerminalTheme()
+  }
+)
 
 const handleKeydown = (e: KeyboardEvent) => {
   if (isConnected.value || !props.isActive) return
@@ -74,10 +118,8 @@ onMounted(() => {
     disableStdin: false,
     fontSize: 14,
     lineHeight: 1.2,
-    fontFamily: 'Menlo, Monaco, "Courier New", monospace',
-    theme: {
-      background: '#1e1e1e',
-    },
+    fontFamily: '"JetBrains Mono", Menlo, Monaco, "Courier New", monospace',
+    theme: currentTerminalTheme(),
     rightClickSelectsWord: true,
     allowProposedApi: true,
   })

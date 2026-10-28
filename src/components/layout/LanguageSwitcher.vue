@@ -1,9 +1,14 @@
 <template>
   <v-menu>
     <template #activator="{ props }">
-      <v-btn v-bind="props" icon variant="text" size="small" class="mr-2">
-        {{ localeStore.currentLocale === 'en' ? '🇬🇧' : '🇻🇳' }}
-      </v-btn>
+      <button
+        v-bind="props"
+        class="st-lang-btn"
+        :aria-label="$t('toolbar.languageLabel')"
+        :title="$t('toolbar.languageLabel')"
+      >
+        {{ localeStore.currentLocale.toUpperCase() }}
+      </button>
     </template>
     <v-list density="compact">
       <v-list-item
@@ -27,3 +32,27 @@ import { useLocaleStore } from '@/stores/locale'
 
 const localeStore = useLocaleStore()
 </script>
+
+<style scoped>
+.st-lang-btn {
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--st-border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--st-muted);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.st-lang-btn:hover {
+  border-color: var(--st-gold);
+  color: var(--st-gold-text);
+}
+
+.st-lang-btn:focus-visible {
+  outline: 2px solid var(--st-gold);
+  outline-offset: 1px;
+}
+</style>

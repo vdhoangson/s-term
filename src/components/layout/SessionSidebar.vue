@@ -1,94 +1,78 @@
 <template>
-  <!-- Main Sidebar Content -->
-  <v-navigation-drawer v-model="isOpen" width="300" location="left" permanent>
-    <div class="d-flex flex-column h-100">
-      <!-- Quick Connect -->
-      <v-sheet class="pa-2 border-b">
-        <v-text-field
+  <!-- Connections panel -->
+  <aside v-show="isOpen" class="st-block st-hosts" :aria-label="t('sidebar.savedConnections')">
+    <div class="st-block-header">
+      <span class="st-hosts__label">{{ t('sidebar.savedConnections') }}</span>
+      <span class="st-spacer"></span>
+      <button
+        class="st-icon-btn"
+        :aria-label="t('sidebar.tooltips.newFolder')"
+        :title="t('sidebar.tooltips.newFolder')"
+        @click="openNewFolderDialog"
+      >
+        <v-icon icon="mdi-folder-plus-outline" size="16" />
+      </button>
+      <button
+        class="st-icon-btn"
+        :aria-label="t('sidebar.tooltips.newConnection')"
+        :title="t('sidebar.tooltips.newConnection')"
+        @click="showNewSessionModal = true"
+      >
+        <v-icon icon="mdi-plus" size="16" />
+      </button>
+    </div>
+
+    <!-- Search -->
+    <div class="st-hosts__search">
+      <label class="st-hosts__input">
+        <v-icon icon="mdi-magnify" size="14" />
+        <input
           v-model="search"
           :placeholder="t('sidebar.searchPlaceholder')"
-          density="compact"
-          variant="outlined"
-          hide-details
-          prepend-inner-icon="mdi-magnify"
-          class="search-input"
-        ></v-text-field>
-      </v-sheet>
-
-      <v-sheet class="d-flex align-center px-2 py-1">
-        <v-icon icon="mdi-account" size="small" class="mr-2"></v-icon>
-        <span class="text-caption font-weight-bold">{{ t('sidebar.savedConnections') }}</span>
-        <v-spacer></v-spacer>
-
-        <v-tooltip location="top" text="New Folder">
-          <template #activator="{ props }">
-            <v-btn
-              icon="mdi-folder-plus"
-              variant="text"
-              size="x-small"
-              v-bind="props"
-              class="mr-1"
-              @click="openNewFolderDialog"
-            ></v-btn>
-          </template>
-        </v-tooltip>
-
-        <v-tooltip location="top" text="New Session">
-          <template #activator="{ props }">
-            <v-btn
-              icon="mdi-plus"
-              variant="text"
-              size="x-small"
-              v-bind="props"
-              @click="showNewSessionModal = true"
-            ></v-btn>
-          </template>
-        </v-tooltip>
-      </v-sheet>
-
-      <!-- Sessions Tree -->
-      <v-list density="compact" nav class="flex-grow-1 overflow-y-auto py-0">
-        <draggable
-          v-model="treeData"
-          item-key="id"
-          tag="div"
-          group="sessions"
-          @change="onDragChange"
-          @start="onDragStart"
-          @end="onDragEnd"
-          :animation="200"
-        >
-          <template #item="{ element }">
-            <div>
-              <SessionTreeItem
-                :item="element"
-                @select="openSavedConnection"
-                @edit="handleEditConnection"
-                @delete="deleteConnection"
-                @delete-folder="deleteFolder"
-                @create-session="handleCreateSessionInFolder"
-                @create-folder="handleCreateFolderInFolder"
-                @rename="handleRename"
-                @move-item="handleMoveItem"
-                @drag-start="onDragStart"
-                @drag-end="onDragEnd"
-              />
-            </div>
-          </template>
-        </draggable>
-      </v-list>
-      <v-sheet class="pa-2 border-b">
-        <v-btn
-          block
-          variant="text"
-          prepend-icon="mdi-plus"
-          color="primary"
-          @click="createLocalSession('bash')"
-          >{{ t('session.newTerminal') }}</v-btn
-        >
-      </v-sheet>
+          :aria-label="t('sidebar.searchPlaceholder')"
+        />
+      </label>
     </div>
-  </v-navigation-drawer>
+
+    <!-- Sessions Tree -->
+    <v-list density="compact" nav bg-color="transparent" class="flex-grow-1 overflow-y-auto py-0">
+      <draggable
+        v-model="treeData"
+        item-key="id"
+        tag="div"
+        group="sessions"
+        @change="onDragChange"
+        @start="onDragStart"
+        @end="onDragEnd"
+        :animation="200"
+      >
+        <template #item="{ element }">
+          <div>
+            <SessionTreeItem
+              :item="element"
+              @select="openSavedConnection"
+              @edit="handleEditConnection"
+              @delete="deleteConnection"
+              @delete-folder="deleteFolder"
+              @create-session="handleCreateSessionInFolder"
+              @create-folder="handleCreateFolderInFolder"
+              @rename="handleRename"
+              @move-item="handleMoveItem"
+              @drag-start="onDragStart"
+              @drag-end="onDragEnd"
+            />
+          </div>
+        </template>
+      </draggable>
+    </v-list>
+
+    <div class="st-hosts__footer">
+      <button class="st-btn-gold" @click="terminalStore.createLocalSession('bash')">
+        <v-icon icon="mdi-plus" size="16" />
+        {{ t('session.newTerminal') }}
+      </button>
+    </div>
+  </aside>
 
   <NewSessionModal
     v-model="showNewSessionModal"
@@ -211,25 +195,6 @@ function handleMoveItem(event: any, parentId: string) {
   // This is called by children when their list changes
 }
 
-async function createLocalSession(shell?: string) {
-  const id = await window.electronAPI.session.create({
-    cols: 80,
-    rows: 24,
-    shell,
-  })
-
-  terminalStore.addSession({
-    id,
-    title: 'Terminal',
-    type: 'local',
-    config: {
-      cols: 80,
-      rows: 24,
-      shell,
-    },
-  })
-}
-
 async function openSavedConnection(conn: Connection) {
   const existingSession = terminalStore.sessions.find(s => s.connectionId === conn.id)
 
@@ -239,7 +204,7 @@ async function openSavedConnection(conn: Connection) {
   }
 
   if (conn.type === 'local') {
-    createLocalSession(conn.shell)
+    terminalStore.createLocalSession(conn.shell)
   } else {
     const id = await window.electronAPI.session.create({
       cols: 80,
@@ -365,8 +330,52 @@ async function saveFolder() {
 </script>
 
 <style scoped>
-.search-input :deep(.v-field__outline__start),
-.search-input :deep(.v-field__outline__end) {
-  border-color: #444;
+.st-hosts {
+  flex: 0 0 248px;
+  width: 248px;
+}
+
+.st-hosts__label {
+  color: var(--st-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.st-hosts__search {
+  padding: 10px;
+}
+
+.st-hosts__input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--st-border);
+  border-radius: 6px;
+  background: var(--st-input-bg);
+  color: var(--st-muted);
+}
+
+.st-hosts__input:focus-within {
+  border-color: var(--st-gold);
+}
+
+.st-hosts__input input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--st-text);
+  font: inherit;
+  font-size: 12px;
+}
+
+.st-hosts__footer {
+  padding: 10px;
+  border-top: 1px solid var(--st-border-soft);
 }
 </style>

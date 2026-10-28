@@ -28,6 +28,8 @@ export default {
     closeConfirm: 'Close "{title}"?\n\nThis will terminate the active connection.',
     newSession: 'New Session',
     newTerminal: 'New Terminal',
+    tabs: 'Sessions',
+    closeTab: 'Close tab {title}',
   },
   sftp: {
     title: 'SFTP Browser',
@@ -81,8 +83,11 @@ export default {
       dark: 'Dark',
       system: 'System',
     },
+    themeLabel: 'Change theme',
+    languageLabel: 'Change language',
   },
   monitoring: {
+    title: 'Monitoring',
     toggle: 'Remote Monitoring',
     metrics: {
       cpu: 'CPU',
@@ -92,6 +97,14 @@ export default {
       disk: 'Disk',
       username: 'User',
     },
+  },
+  widgets: {
+    label: 'Widgets',
+    hosts: 'Hosts',
+    sftp: 'SFTP',
+    sysinfo: 'Sysinfo',
+    settings: 'Settings',
+    about: 'About',
   },
   modal: {
     title: {
@@ -147,5 +160,19 @@ export default {
     error: 'Error',
     success: 'Success',
     ok: 'OK',
+  },
+  updater: {
+    checking: 'Checking for updates...',
+    pleaseWait: 'Please wait',
+    available: 'Update Available!',
+    availableMessage: 'Version {version} is available. Would you like to download it?',
+    downloading: 'Downloading Update...',
+    progress: '{percent}% - {transferred} MB / {total} MB',
+    ready: 'Update Ready!',
+    readyMessage: 'Version {version} has been downloaded. Restart to install.',
+    error: 'Update Error',
+    download: 'Download',
+    install: 'Install & Restart',
+    later: 'Later',
   },
 }

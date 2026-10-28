@@ -8,6 +8,7 @@
     {
       "provider": "github",
       "owner": "vdhoangson",
+      "repo": "s-term",
       "releaseType": "release"
     }
   ],

@@ -9,27 +9,30 @@
           v-if="showProgress"
           :model-value="progress"
           class="mt-2"
-          color="white"
           height="4"
         ></v-progress-linear>
       </div>
     </div>
 
     <template #actions>
-      <v-btn v-if="showDownloadButton" variant="text" @click="downloadUpdate"> Download </v-btn>
-      <v-btn v-if="showInstallButton" variant="text" color="white" @click="installUpdate">
-        Install & Restart
+      <v-btn v-if="showDownloadButton" variant="text" @click="downloadUpdate">
+        {{ t('updater.download') }}
       </v-btn>
-      <v-btn variant="text" @click="close"> Later </v-btn>
+      <v-btn v-if="showInstallButton" variant="text" @click="installUpdate">
+        {{ t('updater.install') }}
+      </v-btn>
+      <v-btn variant="text" @click="close"> {{ t('updater.later') }} </v-btn>
     </template>
   </v-snackbar>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useSettingsStore } from '../../stores/settings'
 
 const settingsStore = useSettingsStore()
+const { t } = useI18n()
 
 const show = ref(false)
 const title = ref('')
@@ -42,6 +45,7 @@ const snackbarColor = ref('primary')
 const snackbarTimeout = ref(-1)
 
 let updateInfo: any = null
+let downloading = false
 const cleanupFunctions: Array<() => void> = []
 
 onMounted(async () => {
@@ -55,8 +59,8 @@ onMounted(async () => {
 
   // Listen for update events
   const onUpdateChecking = window.electronAPI?.updater?.onUpdateChecking(() => {
-    title.value = 'Checking for updates...'
-    message.value = 'Please wait'
+    title.value = t('updater.checking')
+    message.value = t('updater.pleaseWait')
     show.value = true
     showDownloadButton.value = false
     showInstallButton.value = false
@@ -67,8 +71,8 @@ onMounted(async () => {
 
   const onUpdateAvailable = window.electronAPI?.updater?.onUpdateAvailable((info: any) => {
     updateInfo = info
-    title.value = 'Update Available!'
-    message.value = `Version ${info.version} is available. Would you like to download it?`
+    title.value = t('updater.available')
+    message.value = t('updater.availableMessage', { version: info.version })
     show.value = true
     showDownloadButton.value = true
     showInstallButton.value = false
@@ -84,8 +88,12 @@ onMounted(async () => {
 
   const onUpdateDownloadProgress = window.electronAPI?.updater?.onUpdateDownloadProgress(
     (progressObj: any) => {
-      title.value = 'Downloading Update...'
-      message.value = `${Math.round(progressObj.percent)}% - ${(progressObj.transferred / 1024 / 1024).toFixed(2)} MB / ${(progressObj.total / 1024 / 1024).toFixed(2)} MB`
+      title.value = t('updater.downloading')
+      message.value = t('updater.progress', {
+        percent: Math.round(progressObj.percent),
+        transferred: (progressObj.transferred / 1024 / 1024).toFixed(2),
+        total: (progressObj.total / 1024 / 1024).toFixed(2),
+      })
       progress.value = progressObj.percent
       show.value = true
       showDownloadButton.value = false
@@ -96,8 +104,8 @@ onMounted(async () => {
 
   const onUpdateDownloaded = window.electronAPI?.updater?.onUpdateDownloaded((info: any) => {
     updateInfo = info
-    title.value = 'Update Ready!'
-    message.value = `Version ${info.version} has been downloaded. Restart to install.`
+    title.value = t('updater.ready')
+    message.value = t('updater.readyMessage', { version: info.version })
     show.value = true
     showDownloadButton.value = false
     showInstallButton.value = true
@@ -107,8 +115,14 @@ onMounted(async () => {
   })
 
   const onUpdateError = window.electronAPI?.updater?.onUpdateError((error: string) => {
-    title.value = 'Update Error'
-    message.value = error
+    // Failed background check: main process already logs it, don't bother the user
+    if (!downloading) {
+      show.value = false
+      return
+    }
+    downloading = false
+    title.value = t('updater.error')
+    message.value = error.split('\n')[0].slice(0, 200)
     show.value = true
     showDownloadButton.value = false
     showInstallButton.value = false
@@ -124,6 +138,8 @@ onMounted(async () => {
   if (onUpdateDownloadProgress) cleanupFunctions.push(onUpdateDownloadProgress)
   if (onUpdateDownloaded) cleanupFunctions.push(onUpdateDownloaded)
   if (onUpdateError) cleanupFunctions.push(onUpdateError)
+
+  window.electronAPI?.updater?.checkForUpdates()
 })
 
 onBeforeUnmount(() => {
@@ -132,6 +148,7 @@ onBeforeUnmount(() => {
 })
 
 function downloadUpdate() {
+  downloading = true
   window.electronAPI?.updater?.downloadUpdate()
   showDownloadButton.value = false
 }
