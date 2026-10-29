@@ -7,9 +7,13 @@ export class SshSession extends Session {
   private client: Client
   private sftpService: any
   private monitoringService: any
+  private cols = 80
+  private rows = 24
 
   constructor(id: string, config: any, sftpService?: any, monitoringService?: any) {
     super()
+    this.cols = config.cols || 80
+    this.rows = config.rows || 24
     this.client = new Client()
     this.sftpService = sftpService
     this.monitoringService = monitoringService
@@ -68,28 +72,32 @@ export class SshSession extends Session {
         }
       }
 
-      this.client.shell(shellOptions, (err: any, stream: any) => {
-        if (err) {
-          this.emit('data', `\r\n\x1b[1;31m✖ Failed to open shell: \x1b[0m${err.message}\r\n\r\n`)
-          this.emit('exit', { exitCode: 1, signal: 'ERROR' })
-          return
+      this.client.shell(
+        { term: 'xterm-256color', cols: this.cols, rows: this.rows },
+        shellOptions,
+        (err: any, stream: any) => {
+          if (err) {
+            this.emit('data', `\r\n\x1b[1;31m✖ Failed to open shell: \x1b[0m${err.message}\r\n\r\n`)
+            this.emit('exit', { exitCode: 1, signal: 'ERROR' })
+            return
+          }
+
+          this.stream = stream
+
+          stream.on('close', (code: any, signal: any) => {
+            this.client.end()
+            this.emit('exit', { exitCode: code, signal })
+          })
+
+          stream.on('data', (data: any) => {
+            this.emit('data', data.toString())
+          })
+
+          stream.stderr.on('data', (data: any) => {
+            this.emit('data', data.toString())
+          })
         }
-
-        this.stream = stream
-
-        stream.on('close', (code: any, signal: any) => {
-          this.client.end()
-          this.emit('exit', { exitCode: code, signal })
-        })
-
-        stream.on('data', (data: any) => {
-          this.emit('data', data.toString())
-        })
-
-        stream.stderr.on('data', (data: any) => {
-          this.emit('data', data.toString())
-        })
-      })
+      )
     })
 
     this.client.on('error', (err: any) => {
@@ -205,6 +213,8 @@ export class SshSession extends Session {
   }
 
   resize(cols: number, rows: number): void {
+    this.cols = cols
+    this.rows = rows
     if (this.stream) {
       this.stream.setWindow(rows, cols, 0, 0)
     }

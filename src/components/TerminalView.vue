@@ -32,6 +32,8 @@ import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
 import { useSnackbarStore } from '@/stores/snackbar'
 
+const encoder = new TextEncoder()
+
 const props = defineProps<{
   sessionId: string
   isActive?: boolean
@@ -83,6 +85,7 @@ const isConnected = ref(true)
 let terminal: Terminal | null = null
 let fitAddon: FitAddon | null = null
 let resizeObserver: ResizeObserver | null = null
+let fitFrame = 0
 
 const showOverlay = computed(() => !isConnected.value)
 const snackbar = useSnackbarStore()
@@ -112,7 +115,6 @@ onMounted(() => {
   terminal = new Terminal({
     cols: 80,
     rows: 24,
-    convertEol: true,
     cursorBlink: true,
     scrollback: 5000,
     disableStdin: false,
@@ -130,8 +132,11 @@ onMounted(() => {
   terminal.open(terminalContainer.value)
 
   resizeObserver = new ResizeObserver(() => {
-    if (!fitAddon || !terminal) return
-    fitAddon.fit()
+    if (fitFrame) return
+    fitFrame = requestAnimationFrame(() => {
+      fitFrame = 0
+      fitAddon?.fit()
+    })
   })
 
   resizeObserver.observe(terminalContainer.value)
@@ -164,7 +169,7 @@ onMounted(() => {
   const cleanupData = window.electronAPI.session.onData(props.sessionId, data => {
     terminal?.write(data)
     // Send ack for flow control if it's a local session (optional but good)
-    window.ipcRenderer.send('session:ack-data', props.sessionId, data.length)
+    window.ipcRenderer.send('session:ack-data', props.sessionId, encoder.encode(data).length)
   })
 
   // Listen for session exit
@@ -179,7 +184,11 @@ onMounted(() => {
     window.removeEventListener('keydown', handleKeydown)
     cleanupData()
     if (cleanupExit) cleanupExit()
+    resizeObserver?.disconnect()
+    cancelAnimationFrame(fitFrame)
     terminal?.dispose()
+    terminal = null
+    fitAddon = null
   })
 })
 </script>

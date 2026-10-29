@@ -169,7 +169,7 @@ function closeSession(id: string) {
   const title = session?.title || 'this session'
 
   if (confirm(t('session.closeConfirm', { title }))) {
-    window.ipcRenderer.send('terminal:kill', id)
+    window.ipcRenderer.send('session:kill', id)
     store.removeSession(id)
   }
 }
