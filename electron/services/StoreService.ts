@@ -17,13 +17,35 @@ export interface ConnectionSecrets {
   privateKeyContent?: string
 }
 
+interface AppSettings {
+  checkForUpdates: boolean
+  fontFamily: string
+  fontSize: number
+  lineHeight: number
+  cursorStyle: 'block' | 'bar' | 'underline'
+  cursorBlink: boolean
+  scrollback: number
+  defaultShell: string // empty = system default
+  ligatures: boolean
+}
+
+const DEFAULT_SETTINGS: AppSettings = {
+  checkForUpdates: true,
+  fontFamily: '"JetBrains Mono", Menlo, Monaco, "Courier New", monospace',
+  fontSize: 14,
+  lineHeight: 1.2,
+  cursorStyle: 'block',
+  cursorBlink: true,
+  scrollback: 5000,
+  defaultShell: '',
+  ligatures: false,
+}
+
 // Define the shape of our stored data
 interface StoredData {
   connections: Record<string, any>
   folders: Record<string, any>
-  settings: {
-    checkForUpdates: boolean
-  }
+  settings: AppSettings
 }
 
 export class StoreService {
@@ -36,9 +58,7 @@ export class StoreService {
       defaults: {
         connections: {},
         folders: {},
-        settings: {
-          checkForUpdates: true,
-        },
+        settings: DEFAULT_SETTINGS,
       },
     })
 
@@ -257,12 +277,12 @@ export class StoreService {
     }
   }
 
-  private getSettings() {
-    return this.store.get('settings')
+  private getSettings(): AppSettings {
+    return { ...DEFAULT_SETTINGS, ...this.store.get('settings') }
   }
 
-  private setSettings(settings: any) {
-    this.store.set('settings', settings)
+  private setSettings(patch: Partial<AppSettings>) {
+    this.store.set('settings', { ...this.getSettings(), ...patch })
     return true
   }
 }

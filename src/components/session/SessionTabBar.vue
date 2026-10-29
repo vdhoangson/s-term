@@ -27,7 +27,7 @@
       class="st-tabs__new"
       :aria-label="$t('session.newTerminal')"
       :title="$t('session.newTerminal')"
-      @click="terminalStore.createLocalSession('bash')"
+      @click="terminalStore.createLocalSession(settingsStore.defaultShell || undefined)"
     >
       <v-icon icon="mdi-plus" size="16" />
     </button>
@@ -37,6 +37,7 @@
 <script setup lang="ts">
 import { ISession } from '@/types/session'
 import { useTerminalStore } from '@/stores/terminal'
+import { useSettingsStore } from '@/stores/settings'
 
 defineProps<{
   sessions: ISession[]
@@ -49,6 +50,7 @@ defineEmits<{
 }>()
 
 const terminalStore = useTerminalStore()
+const settingsStore = useSettingsStore()
 </script>
 
 <style scoped>

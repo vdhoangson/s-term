@@ -2,6 +2,13 @@
   <div class="position-relative fill-height">
     <div ref="terminalContainer" class="terminal-container fill-height"></div>
 
+    <TerminalSearch
+      v-if="searchOpen && searchAddon"
+      ref="searchRef"
+      :addon="searchAddon"
+      @close="closeSearch"
+    />
+
     <v-overlay
       v-model="showOverlay"
       contained
@@ -25,11 +32,18 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, computed, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, computed, watch, nextTick } from 'vue'
 import { useTheme } from 'vuetify'
 import { Terminal, type ITheme } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
+import { ImageAddon } from '@xterm/addon-image'
+import { LigaturesAddon } from '@xterm/addon-ligatures'
+import { SearchAddon } from '@xterm/addon-search'
+import { Unicode11Addon } from '@xterm/addon-unicode11'
+import { WebglAddon } from '@xterm/addon-webgl'
 import '@xterm/xterm/css/xterm.css'
+import TerminalSearch from './TerminalSearch.vue'
+import { useSettingsStore } from '@/stores/settings'
 import { useSnackbarStore } from '@/stores/snackbar'
 
 const encoder = new TextEncoder()
@@ -84,11 +98,40 @@ const terminalContainer = ref<HTMLElement | null>(null)
 const isConnected = ref(true)
 let terminal: Terminal | null = null
 let fitAddon: FitAddon | null = null
+let searchAddon: SearchAddon | null = null
 let resizeObserver: ResizeObserver | null = null
 let fitFrame = 0
 
 const showOverlay = computed(() => !isConnected.value)
 const snackbar = useSnackbarStore()
+const settings = useSettingsStore()
+const searchOpen = ref(false)
+const searchRef = ref<InstanceType<typeof TerminalSearch> | null>(null)
+
+const terminalSettings = () => ({
+  fontFamily: settings.fontFamily,
+  fontSize: settings.fontSize,
+  lineHeight: settings.lineHeight,
+  cursorStyle: settings.cursorStyle,
+  cursorBlink: settings.cursorBlink,
+  scrollback: settings.scrollback,
+})
+
+watch(terminalSettings, options => {
+  if (!terminal) return
+  Object.assign(terminal.options, options)
+  fitAddon?.fit()
+})
+
+function openSearch() {
+  searchOpen.value = true
+  nextTick(() => searchRef.value?.focus())
+}
+
+function closeSearch() {
+  searchOpen.value = false
+  terminal?.focus()
+}
 
 watch(
   () => vuetifyTheme.global.name.value,
@@ -115,12 +158,8 @@ onMounted(() => {
   terminal = new Terminal({
     cols: 80,
     rows: 24,
-    cursorBlink: true,
-    scrollback: 5000,
     disableStdin: false,
-    fontSize: 14,
-    lineHeight: 1.2,
-    fontFamily: '"JetBrains Mono", Menlo, Monaco, "Courier New", monospace',
+    ...terminalSettings(),
     theme: currentTerminalTheme(),
     rightClickSelectsWord: true,
     allowProposedApi: true,
@@ -128,8 +167,39 @@ onMounted(() => {
 
   fitAddon = new FitAddon()
   terminal.loadAddon(fitAddon)
+  terminal.loadAddon(new Unicode11Addon())
+  terminal.unicode.activeVersion = '11'
+  terminal.loadAddon(new ImageAddon())
+  searchAddon = new SearchAddon()
+  terminal.loadAddon(searchAddon)
+
+  terminal.attachCustomKeyEventHandler(e => {
+    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'f') {
+      if (e.type === 'keydown') openSearch()
+      return false
+    }
+    return true
+  })
 
   terminal.open(terminalContainer.value)
+
+  // Ligatures first: webgl must be loaded after it to pick up the font features
+  if (settings.ligatures) {
+    try {
+      terminal.loadAddon(new LigaturesAddon())
+    } catch (error) {
+      console.warn('Ligatures addon unavailable:', error)
+    }
+  }
+
+  try {
+    const webgl = new WebglAddon()
+    // On context loss xterm falls back to the DOM renderer
+    webgl.onContextLoss(() => webgl.dispose())
+    terminal.loadAddon(webgl)
+  } catch (error) {
+    console.warn('WebGL renderer unavailable, using DOM renderer:', error)
+  }
 
   resizeObserver = new ResizeObserver(() => {
     if (fitFrame) return
@@ -148,6 +218,8 @@ onMounted(() => {
 
   // Copy on selection
   terminal.onSelectionChange(() => {
+    // Search selects each match, don't copy those
+    if (searchOpen.value) return
     const selection = terminal?.getSelection()
     if (selection) {
       navigator.clipboard.writeText(selection)
@@ -189,6 +261,7 @@ onMounted(() => {
     terminal?.dispose()
     terminal = null
     fitAddon = null
+    searchAddon = null
   })
 })
 </script>

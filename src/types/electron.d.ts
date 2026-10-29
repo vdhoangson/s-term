@@ -1,3 +1,15 @@
+export interface AppSettings {
+  checkForUpdates: boolean
+  fontFamily: string
+  fontSize: number
+  lineHeight: number
+  cursorStyle: 'block' | 'bar' | 'underline'
+  cursorBlink: boolean
+  scrollback: number
+  defaultShell: string
+  ligatures: boolean
+}
+
 export interface IElectronAPI {
   selectFile: (options?: any) => Promise<{ canceled: boolean; filePath?: string }>
   store: {
@@ -7,8 +19,8 @@ export interface IElectronAPI {
     deleteConnection: (id: string) => Promise<void>
     saveFolder: (folder: any) => Promise<void>
     deleteFolder: (id: string) => Promise<void>
-    getSettings: () => Promise<{ checkForUpdates: boolean }>
-    setSettings: (settings: { checkForUpdates: boolean }) => Promise<void>
+    getSettings: () => Promise<AppSettings>
+    setSettings: (settings: Partial<AppSettings>) => Promise<void>
   }
   session: {
     create: (options: any) => Promise<string>
