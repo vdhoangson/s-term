@@ -15,6 +15,7 @@ export default [
       'release/**',
       'build/**',
       'coverage/**',
+      'src/**/*.test.ts', // run by node --test, outside the app tsconfig
       '*.config.js',
       '*.config.mjs',
       '*.config.ts',

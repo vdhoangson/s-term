@@ -60,3 +60,15 @@ export interface ITerminalSession {
   monitoringEnabled?: boolean // Monitoring state
   config?: any // Configuration used to create the session
 }
+
+export type SplitDir = 'row' | 'col'
+
+export type LayoutNode =
+  | { type: 'leaf'; sessionId: string }
+  | { type: 'split'; dir: SplitDir; children: LayoutNode[]; sizes: number[] }
+
+export interface ITab {
+  id: string
+  root: LayoutNode
+  activePaneId: string // Session id of the focused pane
+}

@@ -2,17 +2,17 @@
   <v-app>
     <div class="st-shell">
       <AppToolbar
-        :sessions="store.sessions"
+        :sessions="tabSessions"
         :active-session-id="store.activeSessionId"
         @select-session="store.setActiveSession"
-        @close-session="closeSession"
+        @close-session="closeTab"
       />
 
       <div class="st-workspace">
         <SessionSidebar v-model="connectionSidebarOpen" />
 
         <main class="st-blocks">
-          <!-- Terminal block: all TerminalViews stay mounted, only the active one is shown -->
+          <!-- Terminal block: every tab's pane layout stays mounted, only the active tab is shown -->
           <section
             v-if="store.sessions.length > 0"
             class="st-block st-block--focused st-terminal-block"
@@ -38,14 +38,14 @@
             </div>
 
             <div class="st-terminal-body">
-              <TerminalView
-                v-for="session in store.sessions"
-                v-show="store.activeSessionId === session.id"
-                :key="session.id"
-                :session-id="session.id"
-                :is-active="store.activeSessionId === session.id"
-                @reconnect="handleReconnect(session.id)"
-                @close="closeSession(session.id)"
+              <PaneLayout
+                v-for="tab in store.tabs"
+                v-show="store.activeTabId === tab.id"
+                :key="tab.id"
+                :node="tab.root"
+                :tab="tab"
+                @reconnect="handleReconnect"
+                @close="closeSession"
               />
             </div>
           </section>
@@ -107,10 +107,11 @@ import { useI18n } from 'vue-i18n'
 import AppToolbar from './components/layout/AppToolbar.vue'
 import SessionSidebar from './components/layout/SessionSidebar.vue'
 import WidgetBar from './components/layout/WidgetBar.vue'
-import TerminalView from './components/TerminalView.vue'
+import PaneLayout from './components/PaneLayout.vue'
 import SessionSidePanel from './components/session/SessionSidePanel.vue'
 import MonitoringPanel from './components/layout/MonitoringPanel.vue'
 import UpdateNotification from './components/layout/UpdateNotification.vue'
+import { leafIds } from './stores/layout'
 import { useTerminalStore } from './stores/terminal'
 import AboutModal from './components/AboutModal.vue'
 import SettingsModal from './components/session/SettingsModal.vue'
@@ -128,6 +129,11 @@ const sftpSidebarOpen = ref(true)
 const activeSession = computed(() => {
   return store.sessions.find(s => s.id === store.activeSessionId)
 })
+
+// One tab button per tab, titled after its active pane
+const tabSessions = computed(() =>
+  store.tabs.flatMap(tab => store.sessions.filter(s => s.id === tab.activePaneId))
+)
 
 const isSsh = computed(() => activeSession.value?.type === 'ssh')
 
@@ -171,6 +177,20 @@ function closeSession(id: string) {
   if (confirm(t('session.closeConfirm', { title }))) {
     window.electronAPI.session.kill(id)
     store.removeSession(id)
+  }
+}
+
+// Closes every pane of the tab that holds this session
+function closeTab(id: string) {
+  const tab = store.tabs.find(tb => leafIds(tb.root).includes(id))
+  if (!tab) return
+  const title = store.sessions.find(s => s.id === id)?.title || 'this session'
+
+  if (confirm(t('session.closeConfirm', { title }))) {
+    leafIds(tab.root).forEach(sessionId => {
+      window.electronAPI.session.kill(sessionId)
+      store.removeSession(sessionId)
+    })
   }
 }
 
