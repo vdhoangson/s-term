@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     deleteConnection: (id: string) => ipcRenderer.invoke('store:delete-connection', id),
     saveFolder: (folder: any) => ipcRenderer.invoke('store:save-folder', folder),
     deleteFolder: (id: string) => ipcRenderer.invoke('store:delete-folder', id),
+    importSshConfig: () => ipcRenderer.invoke('store:import-ssh-config'),
     getSettings: () => ipcRenderer.invoke('store:get-settings'),
     setSettings: (settings: any) => ipcRenderer.invoke('store:set-settings', settings),
   },
@@ -47,6 +48,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('sftp:delete', sessionId, remotePath),
     rename: (sessionId: string, oldPath: string, newPath: string) =>
       ipcRenderer.invoke('sftp:rename', sessionId, oldPath, newPath),
+    readFile: (sessionId: string, remotePath: string) =>
+      ipcRenderer.invoke('sftp:readFile', sessionId, remotePath),
+    writeFile: (sessionId: string, remotePath: string, content: string) =>
+      ipcRenderer.invoke('sftp:writeFile', sessionId, remotePath, content),
+    onProgress: (callback: (data: any) => void) => {
+      // Remove only this listener: several SFTP browsers can be mounted at once
+      const listener = (_event: any, data: any) => callback(data)
+      ipcRenderer.on('sftp:progress', listener)
+      return () => ipcRenderer.removeListener('sftp:progress', listener)
+    },
   },
   updater: {
     checkForUpdates: () => ipcRenderer.invoke('updater:check-for-updates'),

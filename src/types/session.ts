@@ -19,7 +19,7 @@ export interface Connection {
   host?: string
   port?: number
   username?: string
-  authType?: 'password' | 'privateKey'
+  authType?: 'password' | 'privateKey' | 'agent'
   password?: string
   passphrase?: string
   privateKeyPath?: string
@@ -32,6 +32,8 @@ export interface Connection {
   order?: number
   x11Forwarding?: boolean
   x11Display?: string
+  agentForward?: boolean
+  jumpConnectionId?: string // Saved SSH connection used as a jump host
   shell?: string // For local terminals
 }
 

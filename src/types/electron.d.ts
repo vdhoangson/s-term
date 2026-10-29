@@ -10,6 +10,14 @@ export interface AppSettings {
   ligatures: boolean
 }
 
+export interface SftpProgress {
+  transferId: string
+  sessionId: string
+  name: string
+  transferred: number
+  total: number
+}
+
 export interface IElectronAPI {
   selectFile: (options?: any) => Promise<{ canceled: boolean; filePath?: string }>
   store: {
@@ -19,6 +27,7 @@ export interface IElectronAPI {
     deleteConnection: (id: string) => Promise<void>
     saveFolder: (folder: any) => Promise<void>
     deleteFolder: (id: string) => Promise<void>
+    importSshConfig: () => Promise<{ imported: number; skipped: number }>
     getSettings: () => Promise<AppSettings>
     setSettings: (settings: Partial<AppSettings>) => Promise<void>
   }
@@ -44,6 +53,9 @@ export interface IElectronAPI {
     mkdir: (sessionId: string, remotePath: string) => Promise<void>
     delete: (sessionId: string, remotePath: string) => Promise<void>
     rename: (sessionId: string, oldPath: string, newPath: string) => Promise<void>
+    readFile: (sessionId: string, remotePath: string) => Promise<string>
+    writeFile: (sessionId: string, remotePath: string, content: string) => Promise<void>
+    onProgress: (callback: (data: SftpProgress) => void) => () => void
   }
   updater: {
     checkForUpdates: () => Promise<void>

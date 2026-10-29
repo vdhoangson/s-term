@@ -8,9 +8,11 @@ export default {
     tooltips: {
       newConnection: 'Kết nối mới',
       newFolder: 'Thư mục mới',
+      importSshConfig: 'Nhập ~/.ssh/config',
       refresh: 'Làm mới',
       settings: 'Cài đặt',
     },
+    sshConfigImported: 'Đã nhập {imported} kết nối, bỏ qua {skipped}',
   },
   about: {
     description: 'Terminal SSH hiện đại với hỗ trợ SFTP, X11 forwarding và giám sát từ xa.',
@@ -58,6 +60,7 @@ export default {
       delete: 'Xóa',
     },
     contextMenu: {
+      edit: 'Chỉnh sửa',
       download: 'Tải xuống',
       delete: 'Xóa',
       rename: 'Đổi tên',
@@ -91,6 +94,15 @@ export default {
       delete: 'Xóa thất bại',
       rename: 'Đổi tên thất bại',
       createFolder: 'Tạo thư mục thất bại',
+    },
+    editor: {
+      save: 'Lưu',
+      saved: 'Đã lưu {name}',
+      saveFailed: 'Lưu thất bại',
+      loadFailed: 'Không thể mở tệp',
+      unsavedTitle: 'Thay đổi chưa lưu',
+      unsavedMessage: 'Bỏ các thay đổi chưa lưu của "{name}"?',
+      discard: 'Bỏ thay đổi',
     },
   },
   toolbar: {
@@ -149,10 +161,14 @@ export default {
       keepCurrent: 'Để trống để giữ nguyên',
       x11Forwarding: 'Bật X11 Forwarding',
       x11Display: 'X11 Display (tùy chọn)',
+      agentForward: 'Chuyển tiếp SSH agent',
+      jumpHost: 'Máy chủ trung gian (jump host)',
+      jumpNone: 'Không',
     },
     authTypes: {
       password: 'Mật khẩu',
       privateKey: 'Private Key',
+      agent: 'SSH Agent',
     },
     buttons: {
       cancel: 'Hủy',

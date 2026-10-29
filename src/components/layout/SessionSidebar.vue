@@ -6,6 +6,14 @@
       <span class="st-spacer"></span>
       <button
         class="st-icon-btn"
+        :aria-label="t('sidebar.tooltips.importSshConfig')"
+        :title="t('sidebar.tooltips.importSshConfig')"
+        @click="importSshConfig"
+      >
+        <v-icon icon="mdi-import" size="16" />
+      </button>
+      <button
+        class="st-icon-btn"
         :aria-label="t('sidebar.tooltips.newFolder')"
         :title="t('sidebar.tooltips.newFolder')"
         @click="openNewFolderDialog"
@@ -119,6 +127,7 @@ import { useI18n } from 'vue-i18n'
 import { useTerminalStore } from '../../stores/terminal'
 import { useConnectionStore } from '../../stores/connections'
 import { useSettingsStore } from '../../stores/settings'
+import { useSnackbarStore } from '../../stores/snackbar'
 import type { Connection, TreeNode, Folder } from '@/types/session'
 import NewSessionModal from '../session/NewSessionModal.vue'
 import SessionTreeItem from '../session/SessionTreeItem.vue'
@@ -141,6 +150,7 @@ const { t } = useI18n()
 const terminalStore = useTerminalStore()
 const connectionStore = useConnectionStore()
 const settingsStore = useSettingsStore()
+const snackbar = useSnackbarStore()
 const showNewSessionModal = ref(false)
 const editingConnection = ref<TreeNode | null>(null)
 const search = ref('')
@@ -254,6 +264,16 @@ async function openSavedConnection(conn: Connection) {
   }
 }
 
+async function importSshConfig() {
+  try {
+    const { imported, skipped } = await window.electronAPI.store.importSshConfig()
+    await connectionStore.loadConnections()
+    snackbar.success(t('sidebar.sshConfigImported', { imported, skipped }))
+  } catch (error: any) {
+    snackbar.error(error?.message || String(error))
+  }
+}
+
 async function handleCreateConnection(data: any) {
   const newConnection: Connection = {
     id: data.id || crypto.randomUUID(),
@@ -272,6 +292,8 @@ async function handleCreateConnection(data: any) {
     shell: data.shell,
     // SSH specific
     x11Forwarding: data.x11Forwarding,
+    agentForward: data.agentForward,
+    jumpConnectionId: data.jumpConnectionId || undefined, // cleared select gives null
   }
 
   await connectionStore.saveConnection(newConnection)

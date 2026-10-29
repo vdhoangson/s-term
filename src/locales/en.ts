@@ -8,9 +8,11 @@ export default {
     tooltips: {
       newConnection: 'New Connection',
       newFolder: 'New Folder',
+      importSshConfig: 'Import ~/.ssh/config',
       refresh: 'Refresh',
       settings: 'Settings',
     },
+    sshConfigImported: 'Imported {imported} connection(s), skipped {skipped}',
   },
   about: {
     description: 'Modern SSH Terminal with SFTP support, X11 forwarding, and remote monitoring.',
@@ -58,6 +60,7 @@ export default {
       delete: 'Delete',
     },
     contextMenu: {
+      edit: 'Edit',
       download: 'Download',
       delete: 'Delete',
       rename: 'Rename',
@@ -91,6 +94,15 @@ export default {
       delete: 'Delete Failed',
       rename: 'Rename Failed',
       createFolder: 'Create Folder Failed',
+    },
+    editor: {
+      save: 'Save',
+      saved: 'Saved {name}',
+      saveFailed: 'Save failed',
+      loadFailed: 'Cannot open file',
+      unsavedTitle: 'Unsaved changes',
+      unsavedMessage: 'Discard unsaved changes to "{name}"?',
+      discard: 'Discard',
     },
   },
   toolbar: {
@@ -149,10 +161,14 @@ export default {
       keepCurrent: 'Leave blank to keep current',
       x11Forwarding: 'Enable X11 Forwarding',
       x11Display: 'X11 Display (optional)',
+      agentForward: 'Forward SSH agent',
+      jumpHost: 'Jump host',
+      jumpNone: 'None',
     },
     authTypes: {
       password: 'Password',
       privateKey: 'Private Key',
+      agent: 'SSH Agent',
     },
     buttons: {
       cancel: 'Cancel',

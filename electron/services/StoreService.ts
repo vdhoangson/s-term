@@ -1,6 +1,10 @@
 import Store from 'electron-store'
 import { ipcMain, safeStorage } from 'electron'
 import { randomUUID } from 'crypto'
+import fs from 'fs'
+import os from 'os'
+import path from 'path'
+import { parseSshConfig } from './sshConfig'
 
 const ENC_PREFIX = 'enc:'
 
@@ -92,6 +96,10 @@ export class StoreService {
       return this.deleteFolder(id)
     })
 
+    ipcMain.handle('store:import-ssh-config', () => {
+      return this.importSshConfig()
+    })
+
     ipcMain.handle('store:get-settings', () => {
       return this.getSettings()
     })
@@ -158,6 +166,12 @@ export class StoreService {
     return secrets
   }
 
+  // Main-only: raw connection record with decrypted secrets (e.g. a jump host); never send to renderer
+  public getConnectionWithSecrets(connectionId: string) {
+    const conn = this.getRawConnections()[connectionId]
+    return conn && { ...conn, ...this.getSecrets(connectionId) }
+  }
+
   private async getConnectionsOnly() {
     const connections = this.getRawConnections()
 
@@ -220,6 +234,56 @@ export class StoreService {
     delete folders[id]
     this.store.set('folders', folders)
     return true
+  }
+
+  private async importSshConfig() {
+    const file = path.join(os.homedir(), '.ssh', 'config')
+    if (!fs.existsSync(file)) throw new Error(`${file} not found`)
+
+    const entries = parseSshConfig(fs.readFileSync(file, 'utf8'), os.homedir())
+    const existing = Object.values(this.getRawConnections())
+    const keyOf = (c: any) => `${c.host}:${c.port || 22}:${c.username}`
+    const known = new Set(existing.map(keyOf))
+    const idByName = new Map(existing.map((c: any) => [c.name, c.id]))
+    const fresh: { conn: any; proxyJump?: string }[] = []
+    let skipped = 0
+
+    for (const e of entries) {
+      const conn: any = {
+        id: randomUUID(),
+        name: e.alias,
+        type: 'ssh',
+        host: e.host,
+        port: e.port ?? 22,
+        username: e.user || os.userInfo().username,
+        authType: e.identityFile ? 'privateKey' : 'agent',
+        privateKeyPath: e.identityFile,
+        order: 9999,
+      }
+      if (known.has(keyOf(conn))) {
+        skipped++
+        continue
+      }
+      known.add(keyOf(conn))
+      idByName.set(conn.name, conn.id)
+      fresh.push({ conn, proxyJump: e.proxyJump })
+    }
+
+    if (fresh.length) {
+      const folders = this.store.get('folders') as Record<string, any>
+      let folder = Object.values(folders).find((f: any) => f.name === 'SSH Config' && !f.parentId)
+      if (!folder) {
+        folder = { id: randomUUID(), name: 'SSH Config', parentId: null, order: 9999 }
+        await this.saveFolder(folder)
+      }
+      for (const { conn, proxyJump } of fresh) {
+        const jumpId = proxyJump && idByName.get(proxyJump)
+        if (jumpId && jumpId !== conn.id) conn.jumpConnectionId = jumpId
+        await this.saveConnection({ ...conn, parentId: folder.id })
+      }
+    }
+
+    return { imported: fresh.length, skipped }
   }
 
   /**

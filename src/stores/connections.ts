@@ -108,6 +108,8 @@ export const useConnectionStore = defineStore('connections', () => {
         order: newOrder,
         x11Forwarding: conn.x11Forwarding,
         x11Display: conn.x11Display,
+        agentForward: conn.agentForward,
+        jumpConnectionId: conn.jumpConnectionId,
         shell: conn.shell,
       }
       await saveConnection(plainConn)

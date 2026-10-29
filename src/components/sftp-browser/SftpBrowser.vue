@@ -44,6 +44,16 @@
       </div>
     </v-sheet>
 
+    <!-- Transfer progress -->
+    <v-sheet v-if="transfer" class="px-2 pb-2" style="flex-shrink: 0">
+      <div class="d-flex text-caption">
+        <span class="text-truncate">{{ transfer.name }}</span>
+        <v-spacer></v-spacer>
+        <span>{{ transfer.percent }}%</span>
+      </div>
+      <v-progress-linear :model-value="transfer.percent" color="primary" height="6" rounded />
+    </v-sheet>
+
     <!-- File List -->
     <v-list density="compact" class="overflow-y-auto py-0">
       <v-list-item
@@ -78,6 +88,15 @@
         :style="{ left: contextMenuX + 'px', top: contextMenuY + 'px' }"
       >
         <v-list density="compact">
+          <v-list-item
+            v-if="selectedFile && !selectedFile.isDirectory"
+            @click="editFile(selectedFile!)"
+          >
+            <template #prepend>
+              <v-icon icon="mdi-file-edit-outline"></v-icon>
+            </template>
+            <v-list-item-title>{{ $t('sftp.contextMenu.edit') }}</v-list-item-title>
+          </v-list-item>
           <v-list-item
             v-if="selectedFile && !selectedFile.isDirectory"
             @click="downloadFile(selectedFile!)"
@@ -136,25 +155,27 @@
       @rename="confirmRename"
     />
 
-    <!-- Error Dialog -->
-    <ErrorDialog
-      v-model="showErrorDialog"
-      :title="errorTitle"
-      :message="errorMessage"
-      :details="errorDetails"
+    <!-- Editor Dialog -->
+    <SftpEditorDialog
+      v-model="showEditor"
+      :session-id="sessionId"
+      :remote-path="editPath"
+      @saved="loadFiles"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useSnackbarStore } from '@/stores/snackbar'
 import NewFolderDialog from './NewFolderDialog.vue'
 import DeleteConfirmDialog from './DeleteConfirmDialog.vue'
 import RenameDialog from './RenameDialog.vue'
-import ErrorDialog from './ErrorDialog.vue'
+import SftpEditorDialog from './SftpEditorDialog.vue'
 
 const { t: $t } = useI18n()
+const snackbar = useSnackbarStore()
 
 const props = defineProps<{
   sessionId: string
@@ -185,15 +206,30 @@ const showDeleteDialog = ref(false)
 // Rename Dialog state
 const showRenameDialog = ref(false)
 
-// Error Dialog state
-const showErrorDialog = ref(false)
-const errorTitle = ref('')
-const errorMessage = ref('')
-const errorDetails = ref('')
+// Editor Dialog state
+const showEditor = ref(false)
+const editPath = ref('')
+
+// Running upload/download, fed by main's throttled progress messages
+const transfer = ref<{ name: string; percent: number } | null>(null)
+let unsubscribeProgress: (() => void) | undefined
 
 onMounted(async () => {
+  unsubscribeProgress = window.electronAPI.sftp.onProgress(p => {
+    if (p.sessionId !== props.sessionId) return
+    transfer.value = {
+      name: p.name,
+      percent: p.total ? Math.round((p.transferred / p.total) * 100) : 100,
+    }
+  })
   await loadFiles()
 })
+
+onBeforeUnmount(() => unsubscribeProgress?.())
+
+function joinPath(name: string) {
+  return currentPath.value.replace(/\/$/, '') + '/' + name
+}
 
 async function loadFiles() {
   loading.value = true
@@ -222,11 +258,17 @@ function goUp() {
 
 function handleFileClick(file: FileInfo) {
   if (file.isDirectory) {
-    currentPath.value = currentPath.value.endsWith('/')
-      ? currentPath.value + file.filename
-      : currentPath.value + '/' + file.filename
+    currentPath.value = joinPath(file.filename)
     loadFiles()
+  } else {
+    editFile(file)
   }
+}
+
+function editFile(file: FileInfo) {
+  showContextMenu.value = false
+  editPath.value = joinPath(file.filename)
+  showEditor.value = true
 }
 
 function showFileContextMenu(event: MouseEvent, file: FileInfo) {
@@ -235,7 +277,7 @@ function showFileContextMenu(event: MouseEvent, file: FileInfo) {
   showContextMenu.value = false // Close any open menu first
 
   const menuWidth = 160 // Estimated width of context menu
-  const menuHeight = 150 // Estimated height of context menu
+  const menuHeight = 190 // Estimated height of context menu
 
   let x = event.clientX
   let y = event.clientY
@@ -272,11 +314,12 @@ function showFileContextMenu(event: MouseEvent, file: FileInfo) {
 async function downloadFile(file: FileInfo) {
   showContextMenu.value = false
   try {
-    const remotePath = `${currentPath.value}/${file.filename}`.replace('//', '/')
-    await window.electronAPI.sftp.download(props.sessionId, remotePath)
+    await window.electronAPI.sftp.download(props.sessionId, joinPath(file.filename))
   } catch (error: any) {
     console.error('Download failed:', error)
     showError($t('sftp.errors.download'), error?.message || String(error), file.filename)
+  } finally {
+    transfer.value = null
   }
 }
 
@@ -298,6 +341,7 @@ async function uploadFile() {
     showError($t('sftp.errors.upload'), error?.message || String(error))
   } finally {
     loading.value = false
+    transfer.value = null
   }
 }
 
@@ -305,8 +349,7 @@ async function createFolder(folderName: string) {
   if (!folderName) return
 
   try {
-    const newPath = `${currentPath.value}/${folderName}`.replace('//', '/')
-    await window.electronAPI.sftp.mkdir(props.sessionId, newPath)
+    await window.electronAPI.sftp.mkdir(props.sessionId, joinPath(folderName))
     await loadFiles()
   } catch (error: any) {
     console.error('Create folder failed:', error)
@@ -324,8 +367,7 @@ async function confirmDelete() {
   if (!selectedFile.value) return
 
   try {
-    const remotePath = `${currentPath.value}/${selectedFile.value.filename}`.replace('//', '/')
-    await window.electronAPI.sftp.delete(props.sessionId, remotePath)
+    await window.electronAPI.sftp.delete(props.sessionId, joinPath(selectedFile.value.filename))
     showDeleteDialog.value = false
     const fileName = selectedFile.value.filename
     selectedFile.value = null
@@ -349,9 +391,8 @@ async function confirmRename(newName: string) {
   if (!selectedFile.value || !newName) return
 
   try {
-    const oldPath = `${currentPath.value}/${selectedFile.value.filename}`.replace('//', '/')
-    const newPath = `${currentPath.value}/${newName}`.replace('//', '/')
-    await window.electronAPI.sftp.rename(props.sessionId, oldPath, newPath)
+    const oldPath = joinPath(selectedFile.value.filename)
+    await window.electronAPI.sftp.rename(props.sessionId, oldPath, joinPath(newName))
     selectedFile.value = null
     await loadFiles()
   } catch (error: any) {
@@ -398,9 +439,6 @@ function formatFileSize(bytes: number): string {
 }
 
 function showError(title: string, message: string, details?: string) {
-  errorTitle.value = title
-  errorMessage.value = message
-  errorDetails.value = details || ''
-  showErrorDialog.value = true
+  snackbar.error(`${title}${details ? ` (${details})` : ''}: ${message}`, 5000)
 }
 </script>

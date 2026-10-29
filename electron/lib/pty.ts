@@ -28,11 +28,25 @@ export class PtyManager {
         const stored = options.connectionId
           ? this.storeService.getSecrets(options.connectionId)
           : {}
+        // The jump host's record and secrets are resolved here and never sent to the renderer
+        const jumpConn = options.jumpConnectionId
+          ? this.storeService.getConnectionWithSecrets(options.jumpConnectionId)
+          : undefined
         const config = {
           ...options,
           password: options.password || stored.password,
           passphrase: options.passphrase || stored.passphrase,
           privateKeyContent: options.privateKeyContent || stored.privateKeyContent,
+          jump: jumpConn && {
+            host: jumpConn.host,
+            port: jumpConn.port,
+            username: jumpConn.username,
+            authType: jumpConn.authType || (jumpConn.privateKeyPath ? 'privateKey' : 'password'),
+            password: jumpConn.password,
+            passphrase: jumpConn.passphrase,
+            privateKeyPath: jumpConn.privateKeyPath,
+            privateKeyContent: jumpConn.privateKeyContent,
+          },
         }
         session = new SshSession(id, config, this.sftpService, this.monitoringService)
       } else {

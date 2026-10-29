@@ -16,6 +16,7 @@ export default [
       'build/**',
       'coverage/**',
       'src/**/*.test.ts', // run by node --test, outside the app tsconfig
+      'electron/**/*.test.ts',
       '*.config.js',
       '*.config.mjs',
       '*.config.ts',
