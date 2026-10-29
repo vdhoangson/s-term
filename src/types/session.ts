@@ -24,6 +24,10 @@ export interface Connection {
   passphrase?: string
   privateKeyPath?: string
   privateKeyContent?: string
+  // Secrets stay in main; the renderer only gets these flags for saved connections
+  hasPassword?: boolean
+  hasPassphrase?: boolean
+  hasKeyContent?: boolean
   parentId?: string | null
   order?: number
   x11Forwarding?: boolean

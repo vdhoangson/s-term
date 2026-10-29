@@ -198,7 +198,7 @@ onMounted(async () => {
 async function loadFiles() {
   loading.value = true
   try {
-    const result = await window.ipcRenderer.invoke('sftp:list', props.sessionId, currentPath.value)
+    const result = await window.electronAPI.sftp.list(props.sessionId, currentPath.value)
     files.value = result || []
   } catch (error: any) {
     console.error('Failed to load files:', error)
@@ -273,7 +273,7 @@ async function downloadFile(file: FileInfo) {
   showContextMenu.value = false
   try {
     const remotePath = `${currentPath.value}/${file.filename}`.replace('//', '/')
-    await window.ipcRenderer.invoke('sftp:download', props.sessionId, remotePath)
+    await window.electronAPI.sftp.download(props.sessionId, remotePath)
   } catch (error: any) {
     console.error('Download failed:', error)
     showError($t('sftp.errors.download'), error?.message || String(error), file.filename)
@@ -290,7 +290,7 @@ async function uploadFile() {
         ? currentPath.value
         : currentPath.value + '/'
 
-      await window.ipcRenderer.invoke('sftp:upload', props.sessionId, result.filePath, remotePath)
+      await window.electronAPI.sftp.upload(props.sessionId, result.filePath, remotePath)
       await loadFiles()
     }
   } catch (error: any) {
@@ -306,7 +306,7 @@ async function createFolder(folderName: string) {
 
   try {
     const newPath = `${currentPath.value}/${folderName}`.replace('//', '/')
-    await window.ipcRenderer.invoke('sftp:mkdir', props.sessionId, newPath)
+    await window.electronAPI.sftp.mkdir(props.sessionId, newPath)
     await loadFiles()
   } catch (error: any) {
     console.error('Create folder failed:', error)
@@ -325,7 +325,7 @@ async function confirmDelete() {
 
   try {
     const remotePath = `${currentPath.value}/${selectedFile.value.filename}`.replace('//', '/')
-    await window.ipcRenderer.invoke('sftp:delete', props.sessionId, remotePath)
+    await window.electronAPI.sftp.delete(props.sessionId, remotePath)
     showDeleteDialog.value = false
     const fileName = selectedFile.value.filename
     selectedFile.value = null
@@ -351,7 +351,7 @@ async function confirmRename(newName: string) {
   try {
     const oldPath = `${currentPath.value}/${selectedFile.value.filename}`.replace('//', '/')
     const newPath = `${currentPath.value}/${newName}`.replace('//', '/')
-    await window.ipcRenderer.invoke('sftp:rename', props.sessionId, oldPath, newPath)
+    await window.electronAPI.sftp.rename(props.sessionId, oldPath, newPath)
     selectedFile.value = null
     await loadFiles()
   } catch (error: any) {

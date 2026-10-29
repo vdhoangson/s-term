@@ -169,7 +169,7 @@ onMounted(() => {
   const cleanupData = window.electronAPI.session.onData(props.sessionId, data => {
     terminal?.write(data)
     // Send ack for flow control if it's a local session (optional but good)
-    window.ipcRenderer.send('session:ack-data', props.sessionId, encoder.encode(data).length)
+    window.electronAPI.session.ack(props.sessionId, encoder.encode(data).length)
   })
 
   // Listen for session exit

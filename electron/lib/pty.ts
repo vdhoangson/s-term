@@ -5,15 +5,18 @@ import { SshSession } from '../services/SshSession.js'
 import { LocalSession } from '../services/LocalSession.js'
 import { SftpService } from '../services/SftpService.js'
 import { MonitoringService } from '../services/MonitoringService.js'
+import { StoreService } from '../services/StoreService.js'
 
 export class PtyManager {
   private sessions: Map<string, ISession> = new Map()
   private sftpService!: SftpService
   private monitoringService!: MonitoringService
+  private storeService!: StoreService
 
-  init(sftpService: SftpService, monitoringService: MonitoringService) {
+  init(sftpService: SftpService, monitoringService: MonitoringService, storeService: StoreService) {
     this.sftpService = sftpService
     this.monitoringService = monitoringService
+    this.storeService = storeService
 
     // Create a new session (SSH or Local)
     ipcMain.handle('session:create', async (event, options) => {
@@ -21,7 +24,17 @@ export class PtyManager {
       let session: ISession
 
       if (options.type === 'ssh') {
-        session = new SshSession(id, options, this.sftpService, this.monitoringService)
+        // Secrets live in main only; explicit non-empty values in options win
+        const stored = options.connectionId
+          ? this.storeService.getSecrets(options.connectionId)
+          : {}
+        const config = {
+          ...options,
+          password: options.password || stored.password,
+          passphrase: options.passphrase || stored.passphrase,
+          privateKeyContent: options.privateKeyContent || stored.privateKeyContent,
+        }
+        session = new SshSession(id, config, this.sftpService, this.monitoringService)
       } else {
         session = new LocalSession(id, options)
       }
@@ -82,15 +95,6 @@ export class PtyManager {
       if (session && session instanceof LocalSession) {
         session.ackData(length)
       }
-    })
-
-    // Backward compatibility for terminal:* channels used in some frontend components
-    ipcMain.on('terminal:write', (event, id, data) => {
-      this.sessions.get(id)?.write(data)
-    })
-
-    ipcMain.on('terminal:resize', (event, id, cols, rows) => {
-      this.sessions.get(id)?.resize(cols, rows)
     })
   }
 }

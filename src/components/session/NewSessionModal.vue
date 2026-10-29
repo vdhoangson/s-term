@@ -90,7 +90,11 @@
                 <v-text-field
                   v-model="connection.password"
                   :label="$t('modal.fields.password')"
-                  :placeholder="$t('modal.fields.passwordPlaceholder')"
+                  :placeholder="
+                    editConnection?.hasPassword
+                      ? $t('modal.fields.keepCurrent')
+                      : $t('modal.fields.passwordPlaceholder')
+                  "
                   type="password"
                   variant="outlined"
                   density="compact"
@@ -126,7 +130,11 @@
                 <v-text-field
                   v-model="connection.passphrase"
                   :label="$t('modal.fields.passphrase')"
-                  :placeholder="$t('modal.fields.passphrasePlaceholder')"
+                  :placeholder="
+                    editConnection?.hasPassphrase
+                      ? $t('modal.fields.keepCurrent')
+                      : $t('modal.fields.passphrasePlaceholder')
+                  "
                   type="password"
                   variant="outlined"
                   density="compact"
@@ -236,10 +244,8 @@ watch(
   () => props.editConnection,
   editConn => {
     if (editConn) {
-      connection.value = {
-        ...editConn,
-        passphrase: '', // Don't load passphrase for security
-      }
+      // Secrets never reach the renderer; blank means keep the stored value
+      connection.value = { ...editConn }
       selectedType.value = editConn.type || 'ssh'
     } else {
       resetForm()

@@ -187,7 +187,7 @@ function stopMonitoring() {
 
 async function fetchMetrics() {
   try {
-    const result = await window.ipcRenderer.invoke('monitoring:getMetrics', props.sessionId)
+    const result = await window.electronAPI.monitoring.getMetrics(props.sessionId)
     if (result) {
       metrics.value = result
       cpuHistory.value = [...cpuHistory.value, Number(result.cpu) || 0].slice(-MAX_SAMPLES)

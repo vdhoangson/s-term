@@ -1,9 +1,12 @@
 export interface IElectronAPI {
   selectFile: (options?: any) => Promise<{ canceled: boolean; filePath?: string }>
   store: {
+    getData: () => Promise<{ connections: any[]; folders: Record<string, any> }>
     getConnections: () => Promise<any[]>
     saveConnection: (connection: any) => Promise<void>
     deleteConnection: (id: string) => Promise<void>
+    saveFolder: (folder: any) => Promise<void>
+    deleteFolder: (id: string) => Promise<void>
     getSettings: () => Promise<{ checkForUpdates: boolean }>
     setSettings: (settings: { checkForUpdates: boolean }) => Promise<void>
   }
@@ -12,11 +15,23 @@ export interface IElectronAPI {
     write: (sessionId: string, data: string) => void
     resize: (sessionId: string, cols: number, rows: number) => void
     kill: (sessionId: string) => void
+    ack: (sessionId: string, bytes: number) => void
     onData: (sessionId: string, callback: (data: string) => void) => () => void
     onExit: (
       sessionId: string,
       callback: (data: { exitCode: number; signal: string }) => void
     ) => () => void
+  }
+  monitoring: {
+    getMetrics: (sessionId: string) => Promise<any>
+  }
+  sftp: {
+    list: (sessionId: string, remotePath: string) => Promise<any[]>
+    download: (sessionId: string, remotePath: string) => Promise<string>
+    upload: (sessionId: string, localPath: string, remotePath: string) => Promise<void>
+    mkdir: (sessionId: string, remotePath: string) => Promise<void>
+    delete: (sessionId: string, remotePath: string) => Promise<void>
+    rename: (sessionId: string, oldPath: string, newPath: string) => Promise<void>
   }
   updater: {
     checkForUpdates: () => Promise<void>
@@ -36,6 +51,5 @@ export interface IElectronAPI {
 declare global {
   interface Window {
     electronAPI: IElectronAPI
-    ipcRenderer: import('electron').IpcRenderer
   }
 }

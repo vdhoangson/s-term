@@ -130,6 +130,7 @@ export default {
       selectFile: 'Chọn tệp',
       passphrase: 'Passphrase (nếu có mã hóa)',
       passphrasePlaceholder: 'Nhập passphrase',
+      keepCurrent: 'Để trống để giữ nguyên',
       x11Forwarding: 'Bật X11 Forwarding',
       x11Display: 'X11 Display (tùy chọn)',
     },

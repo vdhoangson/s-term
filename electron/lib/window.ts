@@ -18,7 +18,7 @@ export class Window {
   constructor() {
     this.sftpService = new SftpService()
     this.monitoringService = new MonitoringService()
-    this.ptyManager.init(this.sftpService, this.monitoringService)
+    this.ptyManager.init(this.sftpService, this.monitoringService, this.storeService)
 
     const windowOptions: BrowserWindowConstructorOptions = {
       width: 1200,

@@ -152,7 +152,7 @@ async function handleReconnect(sessionId: string) {
 
   try {
     // Kill old session
-    window.ipcRenderer.send('session:kill', sessionId)
+    window.electronAPI.session.kill(sessionId)
 
     // Create new session with same config
     const newId = await window.electronAPI.session.create(session.config)
@@ -169,7 +169,7 @@ function closeSession(id: string) {
   const title = session?.title || 'this session'
 
   if (confirm(t('session.closeConfirm', { title }))) {
-    window.ipcRenderer.send('session:kill', id)
+    window.electronAPI.session.kill(id)
     store.removeSession(id)
   }
 }

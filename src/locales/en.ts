@@ -130,6 +130,7 @@ export default {
       selectFile: 'Select File',
       passphrase: 'Passphrase (if encrypted)',
       passphrasePlaceholder: 'Enter passphrase',
+      keepCurrent: 'Leave blank to keep current',
       x11Forwarding: 'Enable X11 Forwarding',
       x11Display: 'X11 Display (optional)',
     },

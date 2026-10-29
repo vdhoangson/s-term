@@ -1,19 +1,14 @@
 import { contextBridge, ipcRenderer } from 'electron'
 
-contextBridge.exposeInMainWorld('sftp', {
-  connect: (config: any) => ipcRenderer.invoke('sftp:connect', config),
-  list: (remotePath: string) => ipcRenderer.invoke('sftp:list', remotePath),
-  download: (remotePath: string, localPath: string) =>
-    ipcRenderer.invoke('sftp:download', remotePath, localPath),
-  openDialog: () => ipcRenderer.invoke('dialog:open'),
-})
-
 contextBridge.exposeInMainWorld('electronAPI', {
   selectFile: (options?: any) => ipcRenderer.invoke('dialog:openFile', options),
   store: {
+    getData: () => ipcRenderer.invoke('store:get-data'),
     getConnections: () => ipcRenderer.invoke('store:get-connections'),
     saveConnection: (connection: any) => ipcRenderer.invoke('store:save-connection', connection),
     deleteConnection: (id: string) => ipcRenderer.invoke('store:delete-connection', id),
+    saveFolder: (folder: any) => ipcRenderer.invoke('store:save-folder', folder),
+    deleteFolder: (id: string) => ipcRenderer.invoke('store:delete-folder', id),
     getSettings: () => ipcRenderer.invoke('store:get-settings'),
     setSettings: (settings: any) => ipcRenderer.invoke('store:set-settings', settings),
   },
@@ -23,6 +18,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     resize: (sessionId: string, cols: number, rows: number) =>
       ipcRenderer.send('session:resize', sessionId, cols, rows),
     kill: (sessionId: string) => ipcRenderer.send('session:kill', sessionId),
+    ack: (sessionId: string, bytes: number) =>
+      ipcRenderer.send('session:ack-data', sessionId, bytes),
     onData: (sessionId: string, callback: (data: string) => void) => {
       const channel = `session:data:${sessionId}`
       ipcRenderer.on(channel, (_event, data) => callback(data))
@@ -33,6 +30,23 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.on(channel, (_event, data) => callback(data))
       return () => ipcRenderer.removeAllListeners(channel)
     },
+  },
+  monitoring: {
+    getMetrics: (sessionId: string) => ipcRenderer.invoke('monitoring:getMetrics', sessionId),
+  },
+  sftp: {
+    list: (sessionId: string, remotePath: string) =>
+      ipcRenderer.invoke('sftp:list', sessionId, remotePath),
+    download: (sessionId: string, remotePath: string) =>
+      ipcRenderer.invoke('sftp:download', sessionId, remotePath),
+    upload: (sessionId: string, localPath: string, remotePath: string) =>
+      ipcRenderer.invoke('sftp:upload', sessionId, localPath, remotePath),
+    mkdir: (sessionId: string, remotePath: string) =>
+      ipcRenderer.invoke('sftp:mkdir', sessionId, remotePath),
+    delete: (sessionId: string, remotePath: string) =>
+      ipcRenderer.invoke('sftp:delete', sessionId, remotePath),
+    rename: (sessionId: string, oldPath: string, newPath: string) =>
+      ipcRenderer.invoke('sftp:rename', sessionId, oldPath, newPath),
   },
   updater: {
     checkForUpdates: () => ipcRenderer.invoke('updater:check-for-updates'),
@@ -71,12 +85,4 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('menu:open-settings', callback)
     return () => ipcRenderer.removeAllListeners('menu:open-settings')
   },
-})
-
-// For backward compatibility, also expose ipcRenderer directly
-contextBridge.exposeInMainWorld('ipcRenderer', {
-  invoke: (channel: string, ...args: any[]) => ipcRenderer.invoke(channel, ...args),
-  send: (channel: string, ...args: any[]) => ipcRenderer.send(channel, ...args),
-  on: (channel: string, listener: any) => ipcRenderer.on(channel, listener),
-  removeAllListeners: (channel: string) => ipcRenderer.removeAllListeners(channel),
 })

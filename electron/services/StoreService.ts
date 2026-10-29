@@ -1,6 +1,21 @@
 import Store from 'electron-store'
-import { ipcMain } from 'electron'
+import { ipcMain, safeStorage } from 'electron'
 import { randomUUID } from 'crypto'
+
+const ENC_PREFIX = 'enc:'
+
+// Secret field -> flag the renderer gets instead of the value
+const SECRET_FLAGS = {
+  password: 'hasPassword',
+  passphrase: 'hasPassphrase',
+  privateKeyContent: 'hasKeyContent',
+} as const
+
+export interface ConnectionSecrets {
+  password?: string
+  passphrase?: string
+  privateKeyContent?: string
+}
 
 // Define the shape of our stored data
 interface StoredData {
@@ -13,6 +28,8 @@ interface StoredData {
 
 export class StoreService {
   private store: any
+  private secretsMigrated = false
+  private warnedPlaintext = false
 
   constructor() {
     this.store = new Store<StoredData>({
@@ -70,31 +87,92 @@ export class StoreService {
     return { connections, folders }
   }
 
-  private async getConnectionsOnly() {
+  private encryptSecret(value: string): string {
+    if (!safeStorage.isEncryptionAvailable()) {
+      if (!this.warnedPlaintext) {
+        console.warn('safeStorage unavailable (no OS keyring), storing credentials in plaintext')
+        this.warnedPlaintext = true
+      }
+      // shortcut: plaintext when no OS keyring, upgrade if users report it
+      return value
+    }
+    return ENC_PREFIX + safeStorage.encryptString(value).toString('base64')
+  }
+
+  private decryptSecret(value: string): string | undefined {
+    if (!value.startsWith(ENC_PREFIX)) return value
+    try {
+      return safeStorage.decryptString(Buffer.from(value.slice(ENC_PREFIX.length), 'base64'))
+    } catch (err) {
+      console.error('Failed to decrypt stored credential:', err)
+      return undefined
+    }
+  }
+
+  // Lazy (safeStorage needs app ready): encrypts legacy plaintext secrets on first read
+  private getRawConnections(): Record<string, any> {
     const connections = this.store.get('connections') as Record<string, any>
+    if (!this.secretsMigrated && safeStorage.isEncryptionAvailable()) {
+      this.secretsMigrated = true
+      let changed = false
+      for (const conn of Object.values(connections)) {
+        for (const field of Object.keys(SECRET_FLAGS)) {
+          if (conn[field] && !conn[field].startsWith(ENC_PREFIX)) {
+            conn[field] = this.encryptSecret(conn[field])
+            changed = true
+          }
+        }
+      }
+      if (changed) this.store.set('connections', connections)
+    }
+    return connections
+  }
 
-    // Return connections with passwords already stored
-    const connectionsWithPasswords = Object.values(connections).map(conn => {
-      const connectionWithCreds = { ...conn }
+  // Main-only: decrypted secrets for a saved connection
+  public getSecrets(connectionId: string): ConnectionSecrets {
+    const conn = this.getRawConnections()[connectionId]
+    const secrets: Record<string, string | undefined> = {}
+    for (const field of Object.keys(SECRET_FLAGS)) {
+      if (conn?.[field]) secrets[field] = this.decryptSecret(conn[field])
+    }
+    return secrets
+  }
 
-      // Migration: Set default authType for old connections
-      if (!connectionWithCreds.authType) {
-        connectionWithCreds.authType = connectionWithCreds.privateKeyPath
-          ? 'privateKey'
-          : 'password'
+  private async getConnectionsOnly() {
+    const connections = this.getRawConnections()
+
+    // Strip secrets, the renderer only learns whether they exist
+    const safeConnections = Object.values(connections).map(conn => {
+      const safeConn = { ...conn }
+      for (const [field, flag] of Object.entries(SECRET_FLAGS)) {
+        safeConn[flag] = !!conn[field]
+        delete safeConn[field]
       }
 
-      return connectionWithCreds
+      // Migration: Set default authType for old connections
+      if (!safeConn.authType) {
+        safeConn.authType = safeConn.privateKeyPath ? 'privateKey' : 'password'
+      }
+
+      return safeConn
     })
 
-    return connectionsWithPasswords
+    return safeConnections
   }
 
   private async saveConnection(connection: any) {
-    // Save connection with sensitive data in JSON (not secure, but works without keytar)
+    const connections = this.getRawConnections()
+    const existing = connections[connection.id] || {}
     const connectionToStore = { ...connection }
 
-    const connections = this.store.get('connections') as Record<string, any>
+    for (const [field, flag] of Object.entries(SECRET_FLAGS)) {
+      delete connectionToStore[flag]
+      // Empty or missing secret keeps the previously stored value
+      connectionToStore[field] = connection[field]
+        ? this.encryptSecret(connection[field])
+        : existing[field]
+    }
+
     connections[connection.id] = connectionToStore
     this.store.set('connections', connections)
 

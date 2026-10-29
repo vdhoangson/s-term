@@ -206,22 +206,16 @@ async function openSavedConnection(conn: Connection) {
   if (conn.type === 'local') {
     terminalStore.createLocalSession(conn.shell)
   } else {
-    const id = await window.electronAPI.session.create({
-      cols: 80,
-      rows: 24,
-      ...conn,
-    })
+    // Main merges the stored secrets using connectionId
+    const config = { cols: 80, rows: 24, ...conn, connectionId: conn.id }
+    const id = await window.electronAPI.session.create(config)
 
     terminalStore.addSession({
       id,
       title: conn.name,
       type: 'ssh',
       connectionId: conn.id, // Track which connection created this session
-      config: {
-        cols: 80,
-        rows: 24,
-        ...conn,
-      },
+      config,
     })
   }
 }
