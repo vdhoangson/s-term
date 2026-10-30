@@ -2,6 +2,13 @@
   <div class="position-relative fill-height">
     <div ref="terminalContainer" class="terminal-container fill-height"></div>
 
+    <TerminalSearch
+      v-if="searchOpen && searchAddon"
+      ref="searchRef"
+      :addon="searchAddon"
+      @close="closeSearch"
+    />
+
     <v-overlay
       v-model="showOverlay"
       contained
@@ -25,12 +32,23 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, computed, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, computed, watch, nextTick } from 'vue'
 import { useTheme } from 'vuetify'
-import { Terminal, type ITheme } from '@xterm/xterm'
+import { Terminal, type IDisposable, type ITheme } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
+import { ImageAddon } from '@xterm/addon-image'
+import { LigaturesAddon } from '@xterm/addon-ligatures'
+import { SearchAddon } from '@xterm/addon-search'
+import { Unicode11Addon } from '@xterm/addon-unicode11'
+import { WebglAddon } from '@xterm/addon-webgl'
 import '@xterm/xterm/css/xterm.css'
+import TerminalSearch from './TerminalSearch.vue'
+import { useSettingsStore } from '@/stores/settings'
 import { useSnackbarStore } from '@/stores/snackbar'
+import { useTerminalStore } from '@/stores/terminal'
+import { disconnected, terminalCache, type ITerminalEntry } from '@/stores/terminalCache'
+
+const encoder = new TextEncoder()
 
 const props = defineProps<{
   sessionId: string
@@ -79,13 +97,45 @@ const currentTerminalTheme = () =>
   terminalThemes[vuetifyTheme.global.name.value === 'light' ? 'light' : 'dark']
 
 const terminalContainer = ref<HTMLElement | null>(null)
-const isConnected = ref(true)
+const isConnected = computed(() => !disconnected.has(props.sessionId))
 let terminal: Terminal | null = null
 let fitAddon: FitAddon | null = null
+let searchAddon: SearchAddon | null = null
 let resizeObserver: ResizeObserver | null = null
+let selectionListener: IDisposable | null = null
+let fitFrame = 0
 
 const showOverlay = computed(() => !isConnected.value)
 const snackbar = useSnackbarStore()
+const terminalStore = useTerminalStore()
+const settings = useSettingsStore()
+const searchOpen = ref(false)
+const searchRef = ref<InstanceType<typeof TerminalSearch> | null>(null)
+
+const terminalSettings = () => ({
+  fontFamily: settings.fontFamily,
+  fontSize: settings.fontSize,
+  lineHeight: settings.lineHeight,
+  cursorStyle: settings.cursorStyle,
+  cursorBlink: settings.cursorBlink,
+  scrollback: settings.scrollback,
+})
+
+watch(terminalSettings, options => {
+  if (!terminal) return
+  Object.assign(terminal.options, options)
+  fitAddon?.fit()
+})
+
+function openSearch() {
+  searchOpen.value = true
+  nextTick(() => searchRef.value?.focus())
+}
+
+function closeSearch() {
+  searchOpen.value = false
+  terminal?.focus()
+}
 
 watch(
   () => vuetifyTheme.global.name.value,
@@ -104,37 +154,153 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 }
 
-onMounted(() => {
-  window.addEventListener('keydown', handleKeydown)
-
-  if (!terminalContainer.value) return
-
-  terminal = new Terminal({
+// Created once per session; the terminal is re-parented (not recreated) when the pane tree reshapes
+function createEntry(container: HTMLElement): ITerminalEntry {
+  const sessionId = props.sessionId
+  const term = new Terminal({
     cols: 80,
     rows: 24,
-    convertEol: true,
-    cursorBlink: true,
-    scrollback: 5000,
     disableStdin: false,
-    fontSize: 14,
-    lineHeight: 1.2,
-    fontFamily: '"JetBrains Mono", Menlo, Monaco, "Courier New", monospace',
+    ...terminalSettings(),
     theme: currentTerminalTheme(),
     rightClickSelectsWord: true,
     allowProposedApi: true,
   })
 
-  fitAddon = new FitAddon()
-  terminal.loadAddon(fitAddon)
+  const fit = new FitAddon()
+  term.loadAddon(fit)
+  term.loadAddon(new Unicode11Addon())
+  term.unicode.activeVersion = '11'
+  term.loadAddon(new ImageAddon())
+  const search = new SearchAddon()
+  term.loadAddon(search)
 
-  terminal.open(terminalContainer.value)
+  term.open(container)
 
-  resizeObserver = new ResizeObserver(() => {
-    if (!fitAddon || !terminal) return
-    fitAddon.fit()
+  // Ligatures first: webgl must be loaded after it to pick up the font features
+  if (settings.ligatures) {
+    try {
+      term.loadAddon(new LigaturesAddon())
+    } catch (error) {
+      console.warn('Ligatures addon unavailable:', error)
+    }
+  }
+
+  try {
+    const webgl = new WebglAddon()
+    // On context loss xterm falls back to the DOM renderer
+    webgl.onContextLoss(() => webgl.dispose())
+    term.loadAddon(webgl)
+  } catch (error) {
+    console.warn('WebGL renderer unavailable, using DOM renderer:', error)
+  }
+
+  // Data from terminal (user input) -> backend
+  term.onData(data => {
+    if (disconnected.has(sessionId)) return
+    window.electronAPI.session.write(sessionId, data)
   })
 
-  resizeObserver.observe(terminalContainer.value)
+  term.onResize(({ cols, rows }) => {
+    window.electronAPI.session.resize(sessionId, cols, rows)
+  })
+
+  // Data from backend -> terminal (stays subscribed while the view is detached)
+  const cleanups = [
+    window.electronAPI.session.onData(sessionId, data => {
+      term.write(data)
+      // Send ack for flow control if it's a local session (optional but good)
+      window.electronAPI.session.ack(sessionId, encoder.encode(data).length)
+    }),
+  ]
+
+  // Listen for session exit
+  if (window.electronAPI.session.onExit) {
+    cleanups.push(window.electronAPI.session.onExit(sessionId, () => disconnected.add(sessionId)))
+  }
+
+  const entry = { terminal: term, fitAddon: fit, searchAddon: search, cleanups }
+  terminalCache.set(sessionId, entry)
+  return entry
+}
+
+// Closest pane in the arrow direction, by comparing pane rects
+function neighbourPaneId(arrow: string) {
+  const from = terminalContainer.value?.closest('[data-pane-id]')?.getBoundingClientRect()
+  if (!from) return undefined
+  const horizontal = arrow === 'ArrowLeft' || arrow === 'ArrowRight'
+  let best: { id: string; gap: number } | undefined
+  for (const el of document.querySelectorAll<HTMLElement>('[data-pane-id]')) {
+    const id = el.dataset.paneId
+    const r = el.getBoundingClientRect()
+    // Panes of hidden tabs have no size
+    if (!id || id === props.sessionId || !r.width) continue
+    const overlaps = horizontal
+      ? r.top < from.bottom && r.bottom > from.top
+      : r.left < from.right && r.right > from.left
+    const gaps = {
+      ArrowLeft: from.left - r.right,
+      ArrowRight: r.left - from.right,
+      ArrowUp: from.top - r.bottom,
+      ArrowDown: r.top - from.bottom,
+    }
+    const gap = gaps[arrow as keyof typeof gaps]
+    // Splitters leave a few px between panes
+    if (overlaps && gap >= -1 && (!best || gap < best.gap)) best = { id, gap }
+  }
+  return best?.id
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown)
+
+  const container = terminalContainer.value
+  if (!container) return
+
+  let entry = terminalCache.get(props.sessionId)
+  if (entry?.terminal.element) {
+    container.appendChild(entry.terminal.element)
+  } else {
+    entry = createEntry(container)
+  }
+  terminal = entry.terminal
+  fitAddon = entry.fitAddon
+  searchAddon = entry.searchAddon
+
+  terminal.attachCustomKeyEventHandler(e => {
+    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'f') {
+      if (e.type === 'keydown') openSearch()
+      return false
+    }
+    // Ctrl+Shift+D split right, E split down, W close pane
+    const key = e.key.toLowerCase()
+    if (e.ctrlKey && e.shiftKey && (key === 'd' || key === 'e' || key === 'w')) {
+      if (e.type === 'keydown') {
+        if (key === 'w') emit('close')
+        else terminalStore.splitPane(props.sessionId, key === 'd' ? 'row' : 'col')
+      }
+      return false
+    }
+    // Alt+Arrow moves focus; with no neighbour the key still reaches the shell
+    if (e.altKey && !e.ctrlKey && !e.shiftKey && !e.metaKey && e.key.startsWith('Arrow')) {
+      const id = neighbourPaneId(e.key)
+      if (id) {
+        if (e.type === 'keydown') terminalStore.focusPane(id)
+        return false
+      }
+    }
+    return true
+  })
+
+  resizeObserver = new ResizeObserver(() => {
+    if (fitFrame) return
+    fitFrame = requestAnimationFrame(() => {
+      fitFrame = 0
+      fitAddon?.fit()
+    })
+  })
+
+  resizeObserver.observe(container)
 
   // Initial fit
   setTimeout(() => {
@@ -142,7 +308,9 @@ onMounted(() => {
   }, 250)
 
   // Copy on selection
-  terminal.onSelectionChange(() => {
+  selectionListener = terminal.onSelectionChange(() => {
+    // Search selects each match, don't copy those
+    if (searchOpen.value) return
     const selection = terminal?.getSelection()
     if (selection) {
       navigator.clipboard.writeText(selection)
@@ -150,36 +318,26 @@ onMounted(() => {
     }
   })
 
-  // Data from terminal (user input) -> backend
-  terminal.onData(data => {
-    if (!isConnected.value) return
-    window.electronAPI.session.write(props.sessionId, data)
-  })
+  if (props.isActive) terminal.focus()
+})
 
-  terminal.onResize(({ cols, rows }) => {
-    window.electronAPI.session.resize(props.sessionId, cols, rows)
-  })
+// Post flush: a pane of a just-shown tab is only focusable after v-show applied
+watch(
+  () => props.isActive,
+  active => {
+    if (active) terminal?.focus()
+  },
+  { flush: 'post' }
+)
 
-  // Data from backend -> terminal
-  const cleanupData = window.electronAPI.session.onData(props.sessionId, data => {
-    terminal?.write(data)
-    // Send ack for flow control if it's a local session (optional but good)
-    window.ipcRenderer.send('session:ack-data', props.sessionId, data.length)
-  })
-
-  // Listen for session exit
-  let cleanupExit: (() => void) | undefined
-  if (window.electronAPI.session.onExit) {
-    cleanupExit = window.electronAPI.session.onExit(props.sessionId, () => {
-      isConnected.value = false
-    })
-  }
-
-  onBeforeUnmount(() => {
-    window.removeEventListener('keydown', handleKeydown)
-    cleanupData()
-    if (cleanupExit) cleanupExit()
-    terminal?.dispose()
-  })
+// Only detach: the terminal and its IPC listeners live on in terminalCache until disposeTerminal
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKeydown)
+  selectionListener?.dispose()
+  resizeObserver?.disconnect()
+  cancelAnimationFrame(fitFrame)
+  terminal = null
+  fitAddon = null
+  searchAddon = null
 })
 </script>

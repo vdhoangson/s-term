@@ -1,7 +1,10 @@
-import { ipcMain, dialog } from 'electron'
+import { ipcMain, dialog, WebContents } from 'electron'
+import { randomUUID } from 'crypto'
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
+
+const MAX_EDIT_SIZE = 5 * 1024 * 1024
 
 export class SftpService {
   private sftpConnections: Map<string, any> = new Map()
@@ -27,8 +30,16 @@ export class SftpService {
       return this.listFiles(sessionId, remotePath)
     })
 
+    ipcMain.handle('sftp:readFile', async (event, sessionId, remotePath) => {
+      return this.readFile(sessionId, remotePath)
+    })
+
+    ipcMain.handle('sftp:writeFile', async (event, sessionId, remotePath, content) => {
+      return this.writeFile(sessionId, remotePath, content)
+    })
+
     ipcMain.handle('sftp:download', async (event, sessionId, remotePath) => {
-      return this.downloadFile(sessionId, remotePath)
+      return this.downloadFile(event.sender, sessionId, remotePath)
     })
 
     ipcMain.handle('sftp:mkdir', async (event, sessionId, remotePath) => {
@@ -44,7 +55,7 @@ export class SftpService {
     })
 
     ipcMain.handle('sftp:upload', async (event, sessionId, localPath, remotePath) => {
-      return this.uploadFile(sessionId, localPath, remotePath)
+      return this.uploadFile(event.sender, sessionId, localPath, remotePath)
     })
   }
 
@@ -113,11 +124,99 @@ export class SftpService {
       })
     } catch (error) {
       console.error('SFTP list error:', error)
-      return []
+      throw error
     }
   }
 
-  private async downloadFile(sessionId: string, remotePath: string): Promise<string> {
+  // Throttled `step` callback for fastGet/fastPut, plus a final 100% message via `done`
+  private progressReporter(sender: WebContents, sessionId: string, name: string) {
+    const transferId = randomUUID()
+    let last = 0
+    let total = 0
+    const send = (transferred: number) => {
+      if (!sender.isDestroyed()) {
+        sender.send('sftp:progress', { transferId, sessionId, name, transferred, total })
+      }
+    }
+    return {
+      step: (transferred: number, _chunk: number, fileSize: number) => {
+        total = fileSize
+        const now = Date.now()
+        if (now - last >= 100) {
+          last = now
+          send(transferred)
+        }
+      },
+      done: () => send(total),
+    }
+  }
+
+  private async readFile(sessionId: string, remotePath: string): Promise<string> {
+    const sftp = await this.ensureSftpConnected(sessionId)
+
+    const stats: any = await new Promise((resolve, reject) => {
+      sftp.stat(remotePath, (err: any, s: any) => (err ? reject(err) : resolve(s)))
+    })
+    if (stats.size > MAX_EDIT_SIZE) {
+      throw new Error('File is larger than 5 MB, open it with a download instead')
+    }
+
+    const buffer: Buffer = await new Promise((resolve, reject) => {
+      sftp.readFile(remotePath, (err: any, data: Buffer) => (err ? reject(err) : resolve(data)))
+    })
+    if (buffer.includes(0)) {
+      throw new Error('Binary file, cannot be edited as text')
+    }
+    return buffer.toString('utf8')
+  }
+
+  // Writes next to the target then renames over it, so a failed write never truncates the original
+  private async writeFile(sessionId: string, remotePath: string, content: string): Promise<void> {
+    const sftp = await this.ensureSftpConnected(sessionId)
+    const tmpPath = remotePath + '.s-term.tmp'
+    const call = (fn: (cb: (err?: any) => void) => void) =>
+      new Promise<void>((resolve, reject) => fn(err => (err ? reject(err) : resolve())))
+
+    const stats: any = await new Promise((resolve, reject) => {
+      sftp.stat(remotePath, (err: any, s: any) => (err ? reject(err) : resolve(s)))
+    })
+
+    let originalRemoved = false
+    try {
+      await call(cb => sftp.writeFile(tmpPath, content, cb))
+      const mode = stats.mode & 0o7777
+      if (mode) await call(cb => sftp.chmod(tmpPath, mode, cb))
+
+      // ext_openssh_rename throws synchronously when the server lacks posix-rename
+      let atomic = true
+      await new Promise<void>((resolve, reject) => {
+        try {
+          sftp.ext_openssh_rename(tmpPath, remotePath, (err: any) =>
+            err ? reject(err) : resolve()
+          )
+        } catch {
+          atomic = false
+          resolve()
+        }
+      })
+      if (!atomic) {
+        await call(cb => sftp.unlink(remotePath, cb))
+        originalRemoved = true
+        await call(cb => sftp.rename(tmpPath, remotePath, cb))
+      }
+    } catch (error) {
+      console.error('Write file error:', error)
+      // Once the original is gone the tmp file is the only copy, keep it
+      if (!originalRemoved) sftp.unlink(tmpPath, () => {})
+      throw error
+    }
+  }
+
+  private async downloadFile(
+    sender: WebContents,
+    sessionId: string,
+    remotePath: string
+  ): Promise<string> {
     const sftp = await this.ensureSftpConnected(sessionId)
 
     const result = await dialog.showSaveDialog({
@@ -129,14 +228,16 @@ export class SftpService {
     }
 
     const localPath = result.filePath
+    const progress = this.progressReporter(sender, sessionId, path.basename(remotePath))
 
     return new Promise((resolve, reject) => {
-      sftp.fastGet(remotePath, localPath, (err: any) => {
+      sftp.fastGet(remotePath, localPath, { step: progress.step }, (err: any) => {
         if (err) {
           console.error('Download error:', err)
           reject(err)
           return
         }
+        progress.done()
         console.log('Downloaded:', remotePath, 'to', localPath)
         resolve(localPath)
       })
@@ -201,6 +302,7 @@ export class SftpService {
   }
 
   private async uploadFile(
+    sender: WebContents,
     sessionId: string,
     localPath: string,
     remotePath: string
@@ -209,14 +311,16 @@ export class SftpService {
 
     const fileName = path.basename(localPath)
     const fullRemotePath = path.posix.join(remotePath, fileName)
+    const progress = this.progressReporter(sender, sessionId, fileName)
 
     return new Promise((resolve, reject) => {
-      sftp.fastPut(localPath, fullRemotePath, (err: any) => {
+      sftp.fastPut(localPath, fullRemotePath, { step: progress.step }, (err: any) => {
         if (err) {
           console.error('Upload error:', err)
           reject(err)
           return
         }
+        progress.done()
         console.log('Uploaded:', localPath, 'to', fullRemotePath)
         resolve()
       })

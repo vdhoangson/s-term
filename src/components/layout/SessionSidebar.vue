@@ -6,6 +6,14 @@
       <span class="st-spacer"></span>
       <button
         class="st-icon-btn"
+        :aria-label="t('sidebar.tooltips.importSshConfig')"
+        :title="t('sidebar.tooltips.importSshConfig')"
+        @click="importSshConfig"
+      >
+        <v-icon icon="mdi-import" size="16" />
+      </button>
+      <button
+        class="st-icon-btn"
         :aria-label="t('sidebar.tooltips.newFolder')"
         :title="t('sidebar.tooltips.newFolder')"
         @click="openNewFolderDialog"
@@ -37,10 +45,11 @@
     <!-- Sessions Tree -->
     <v-list density="compact" nav bg-color="transparent" class="flex-grow-1 overflow-y-auto py-0">
       <draggable
-        v-model="treeData"
+        v-model="visibleTree"
         item-key="id"
         tag="div"
         group="sessions"
+        :disabled="isFiltering"
         @change="onDragChange"
         @start="onDragStart"
         @end="onDragEnd"
@@ -50,6 +59,7 @@
           <div>
             <SessionTreeItem
               :item="element"
+              :filtering="isFiltering"
               @select="openSavedConnection"
               @edit="handleEditConnection"
               @delete="deleteConnection"
@@ -67,7 +77,10 @@
     </v-list>
 
     <div class="st-hosts__footer">
-      <button class="st-btn-gold" @click="terminalStore.createLocalSession('bash')">
+      <button
+        class="st-btn-gold"
+        @click="terminalStore.createLocalSession(settingsStore.defaultShell || undefined)"
+      >
         <v-icon icon="mdi-plus" size="16" />
         {{ t('session.newTerminal') }}
       </button>
@@ -113,6 +126,8 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTerminalStore } from '../../stores/terminal'
 import { useConnectionStore } from '../../stores/connections'
+import { useSettingsStore } from '../../stores/settings'
+import { useSnackbarStore } from '../../stores/snackbar'
 import type { Connection, TreeNode, Folder } from '@/types/session'
 import NewSessionModal from '../session/NewSessionModal.vue'
 import SessionTreeItem from '../session/SessionTreeItem.vue'
@@ -134,6 +149,8 @@ const isOpen = computed({
 const { t } = useI18n()
 const terminalStore = useTerminalStore()
 const connectionStore = useConnectionStore()
+const settingsStore = useSettingsStore()
+const snackbar = useSnackbarStore()
 const showNewSessionModal = ref(false)
 const editingConnection = ref<TreeNode | null>(null)
 const search = ref('')
@@ -147,6 +164,33 @@ const targetFolderId = ref<string | null>(null) // For creating session/folder i
 // Tree Data for Draggable
 const treeData = ref<TreeNode[]>([])
 const isDragging = ref(false)
+
+// While searching, show only matching connections (and their folders); drag-and-drop is off so
+// the filtered list can't be persisted as a reorder
+const isFiltering = computed(() => !!search.value.trim())
+
+function filterTree(nodes: TreeNode[], query: string): TreeNode[] {
+  return nodes.flatMap(node => {
+    if (node.type === 'folder') {
+      const children = filterTree(node.children || [], query)
+      return children.length ? [{ ...node, children }] : []
+    }
+    const host = (node.data as Connection | undefined)?.host
+    return node.name.toLowerCase().includes(query) || host?.toLowerCase().includes(query)
+      ? [node]
+      : []
+  })
+}
+
+const visibleTree = computed({
+  get: () =>
+    isFiltering.value
+      ? filterTree(treeData.value, search.value.trim().toLowerCase())
+      : treeData.value,
+  set: value => {
+    if (!isFiltering.value) treeData.value = value
+  },
+})
 
 // Sync treeData with store
 watch(
@@ -206,23 +250,27 @@ async function openSavedConnection(conn: Connection) {
   if (conn.type === 'local') {
     terminalStore.createLocalSession(conn.shell)
   } else {
-    const id = await window.electronAPI.session.create({
-      cols: 80,
-      rows: 24,
-      ...conn,
-    })
+    // Main merges the stored secrets using connectionId
+    const config = { cols: 80, rows: 24, ...conn, connectionId: conn.id }
+    const id = await window.electronAPI.session.create(config)
 
     terminalStore.addSession({
       id,
       title: conn.name,
       type: 'ssh',
       connectionId: conn.id, // Track which connection created this session
-      config: {
-        cols: 80,
-        rows: 24,
-        ...conn,
-      },
+      config,
     })
+  }
+}
+
+async function importSshConfig() {
+  try {
+    const { imported, skipped } = await window.electronAPI.store.importSshConfig()
+    await connectionStore.loadConnections()
+    snackbar.success(t('sidebar.sshConfigImported', { imported, skipped }))
+  } catch (error: any) {
+    snackbar.error(error?.message || String(error))
   }
 }
 
@@ -244,6 +292,8 @@ async function handleCreateConnection(data: any) {
     shell: data.shell,
     // SSH specific
     x11Forwarding: data.x11Forwarding,
+    agentForward: data.agentForward,
+    jumpConnectionId: data.jumpConnectionId || undefined, // cleared select gives null
   }
 
   await connectionStore.saveConnection(newConnection)

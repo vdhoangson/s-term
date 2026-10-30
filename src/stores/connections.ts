@@ -65,28 +65,28 @@ export const useConnectionStore = defineStore('connections', () => {
   })
 
   async function loadConnections() {
-    const data = await window.ipcRenderer.invoke('store:get-data')
+    const data = await window.electronAPI.store.getData()
     connections.value = data.connections || []
     folders.value = data.folders || {}
   }
 
   async function saveConnection(connection: Connection) {
-    await window.ipcRenderer.invoke('store:save-connection', connection)
+    await window.electronAPI.store.saveConnection(connection)
     await loadConnections()
   }
 
   async function deleteConnection(id: string) {
-    await window.ipcRenderer.invoke('store:delete-connection', id)
+    await window.electronAPI.store.deleteConnection(id)
     await loadConnections()
   }
 
   async function saveFolder(folder: Folder) {
-    await window.ipcRenderer.invoke('store:save-folder', folder)
+    await window.electronAPI.store.saveFolder(folder)
     await loadConnections()
   }
 
   async function deleteFolder(id: string) {
-    await window.ipcRenderer.invoke('store:delete-folder', id)
+    await window.electronAPI.store.deleteFolder(id)
     await loadConnections()
   }
 
@@ -103,14 +103,13 @@ export const useConnectionStore = defineStore('connections', () => {
         port: conn.port,
         username: conn.username,
         authType: conn.authType,
-        password: conn.password,
-        passphrase: conn.passphrase,
         privateKeyPath: conn.privateKeyPath,
-        privateKeyContent: conn.privateKeyContent,
         parentId: newParentId,
         order: newOrder,
         x11Forwarding: conn.x11Forwarding,
         x11Display: conn.x11Display,
+        agentForward: conn.agentForward,
+        jumpConnectionId: conn.jumpConnectionId,
         shell: conn.shell,
       }
       await saveConnection(plainConn)

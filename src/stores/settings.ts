@@ -1,14 +1,26 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { reactive, toRefs } from 'vue'
+import type { AppSettings } from '@/types/electron'
 
 export const useSettingsStore = defineStore('settings', () => {
-  const checkForUpdates = ref(true)
+  // Same defaults as StoreService, used until loadSettings resolves
+  const state = reactive<AppSettings>({
+    checkForUpdates: true,
+    fontFamily: '"JetBrains Mono", Menlo, Monaco, "Courier New", monospace',
+    fontSize: 14,
+    lineHeight: 1.2,
+    cursorStyle: 'block',
+    cursorBlink: true,
+    scrollback: 5000,
+    defaultShell: '',
+    ligatures: false,
+  })
 
   async function loadSettings() {
     try {
       const settings = await window.electronAPI?.store?.getSettings()
       if (settings) {
-        checkForUpdates.value = settings.checkForUpdates
+        Object.assign(state, settings)
       }
     } catch (error) {
       console.error('Failed to load settings:', error)
@@ -17,23 +29,26 @@ export const useSettingsStore = defineStore('settings', () => {
 
   async function saveSettings() {
     try {
-      await window.electronAPI?.store?.setSettings({
-        checkForUpdates: checkForUpdates.value,
-      })
+      await window.electronAPI?.store?.setSettings({ ...state })
     } catch (error) {
       console.error('Failed to save settings:', error)
     }
   }
 
-  async function setCheckForUpdates(value: boolean) {
-    checkForUpdates.value = value
+  async function update(patch: Partial<AppSettings>) {
+    Object.assign(state, patch)
     await saveSettings()
   }
 
+  async function setCheckForUpdates(value: boolean) {
+    await update({ checkForUpdates: value })
+  }
+
   return {
-    checkForUpdates,
+    ...toRefs(state),
     loadSettings,
     saveSettings,
+    update,
     setCheckForUpdates,
   }
 })

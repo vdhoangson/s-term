@@ -19,15 +19,21 @@ export interface Connection {
   host?: string
   port?: number
   username?: string
-  authType?: 'password' | 'privateKey'
+  authType?: 'password' | 'privateKey' | 'agent'
   password?: string
   passphrase?: string
   privateKeyPath?: string
   privateKeyContent?: string
+  // Secrets stay in main; the renderer only gets these flags for saved connections
+  hasPassword?: boolean
+  hasPassphrase?: boolean
+  hasKeyContent?: boolean
   parentId?: string | null
   order?: number
   x11Forwarding?: boolean
   x11Display?: string
+  agentForward?: boolean
+  jumpConnectionId?: string // Saved SSH connection used as a jump host
   shell?: string // For local terminals
 }
 
@@ -55,4 +61,16 @@ export interface ITerminalSession {
   connectionId?: string // ID of the connection that created this session
   monitoringEnabled?: boolean // Monitoring state
   config?: any // Configuration used to create the session
+}
+
+export type SplitDir = 'row' | 'col'
+
+export type LayoutNode =
+  | { type: 'leaf'; sessionId: string }
+  | { type: 'split'; dir: SplitDir; children: LayoutNode[]; sizes: number[] }
+
+export interface ITab {
+  id: string
+  root: LayoutNode
+  activePaneId: string // Session id of the focused pane
 }

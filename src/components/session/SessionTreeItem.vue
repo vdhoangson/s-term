@@ -45,12 +45,13 @@
     </v-list-item>
 
     <v-expand-transition>
-      <div v-show="folderOpen" class="pl-4">
+      <div v-show="folderOpen || filtering" class="pl-4">
         <draggable
           v-model="localChildren"
           item-key="id"
           tag="div"
           group="sessions"
+          :disabled="filtering"
           @change="onDragChange"
           @start="$emit('drag-start')"
           @end="$emit('drag-end')"
@@ -61,6 +62,7 @@
             <div>
               <SessionTreeItem
                 :item="element"
+                :filtering="filtering"
                 @select="$emit('select', $event)"
                 @edit="$emit('edit', $event)"
                 @delete="$emit('delete', $event)"
@@ -125,6 +127,7 @@ import { useConnectionStore } from '../../stores/connections'
 
 const props = defineProps<{
   item: TreeNode
+  filtering?: boolean
 }>()
 
 const emit = defineEmits<{

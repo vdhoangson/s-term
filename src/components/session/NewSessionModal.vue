@@ -82,6 +82,7 @@
                   </template>
                   <v-radio :label="$t('modal.authTypes.password')" value="password"></v-radio>
                   <v-radio :label="$t('modal.authTypes.privateKey')" value="privateKey"></v-radio>
+                  <v-radio :label="$t('modal.authTypes.agent')" value="agent"></v-radio>
                 </v-radio-group>
               </v-col>
 
@@ -90,7 +91,11 @@
                 <v-text-field
                   v-model="connection.password"
                   :label="$t('modal.fields.password')"
-                  :placeholder="$t('modal.fields.passwordPlaceholder')"
+                  :placeholder="
+                    editConnection?.hasPassword
+                      ? $t('modal.fields.keepCurrent')
+                      : $t('modal.fields.passwordPlaceholder')
+                  "
                   type="password"
                   variant="outlined"
                   density="compact"
@@ -126,13 +131,46 @@
                 <v-text-field
                   v-model="connection.passphrase"
                   :label="$t('modal.fields.passphrase')"
-                  :placeholder="$t('modal.fields.passphrasePlaceholder')"
+                  :placeholder="
+                    editConnection?.hasPassphrase
+                      ? $t('modal.fields.keepCurrent')
+                      : $t('modal.fields.passphrasePlaceholder')
+                  "
                   type="password"
                   variant="outlined"
                   density="compact"
                   hide-details
                   prepend-inner-icon="mdi-key"
                 ></v-text-field>
+              </v-col>
+
+              <!-- Agent forwarding (agent auth only) -->
+              <v-col v-if="connection.authType === 'agent'" cols="12">
+                <v-checkbox
+                  v-model="connection.agentForward"
+                  :label="$t('modal.fields.agentForward')"
+                  color="primary"
+                  density="compact"
+                  hide-details
+                ></v-checkbox>
+              </v-col>
+
+              <!-- Jump Host -->
+              <v-col cols="12">
+                <v-select
+                  v-model="connection.jumpConnectionId"
+                  :items="jumpHosts"
+                  item-title="name"
+                  item-value="id"
+                  :label="$t('modal.fields.jumpHost')"
+                  :placeholder="$t('modal.fields.jumpNone')"
+                  persistent-placeholder
+                  clearable
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  prepend-inner-icon="mdi-transit-connection-variant"
+                ></v-select>
               </v-col>
 
               <!-- X11 Forwarding -->
@@ -181,10 +219,12 @@
 import type { Connection, ISessionType } from '@/types/session'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useConnectionStore } from '../../stores/connections'
 import ModalActions from '../connection/ModalActions.vue'
 import SessionTypeSelector from '../connection/SessionTypeSelector.vue'
 
 const { t } = useI18n()
+const connectionStore = useConnectionStore()
 
 const props = defineProps<{
   modelValue: boolean
@@ -215,6 +255,11 @@ const connection = ref<Partial<Connection>>({
   x11Forwarding: false,
 })
 
+// Other saved SSH connections that can act as a jump host
+const jumpHosts = computed(() =>
+  connectionStore.connections.filter(c => c.type === 'ssh' && c.id !== props.editConnection?.id)
+)
+
 const sessionTypes: ISessionType[] = [
   { title: 'SSH', value: 'ssh', icon: 'mdi-key-variant', color: 'primary' },
 ]
@@ -236,10 +281,8 @@ watch(
   () => props.editConnection,
   editConn => {
     if (editConn) {
-      connection.value = {
-        ...editConn,
-        passphrase: '', // Don't load passphrase for security
-      }
+      // Secrets never reach the renderer; blank means keep the stored value
+      connection.value = { ...editConn }
       selectedType.value = editConn.type || 'ssh'
     } else {
       resetForm()

@@ -130,9 +130,11 @@ export class LocalSession extends Session {
       console.error(`[LocalSession] Failed to spawn shell '${shell}':`, error)
       // Fallback for windows if powershell fails
       if (os.platform() === 'win32' && shell !== 'cmd.exe') {
-        console.log('[LocalSession] Falling back to cmd.exe')
+        // Don't retry the shell that just failed
+        const fallbackShell = this.getWindowsShell() !== shell ? this.getWindowsShell() : 'cmd.exe'
+        console.log(`[LocalSession] Falling back to ${fallbackShell}`)
         try {
-          this.pty = nodePTY.spawn('cmd.exe', [], {
+          this.pty = nodePTY.spawn(fallbackShell, [], {
             name: 'xterm-256color',
             cols: options.cols || 80,
             rows: options.rows || 24,
