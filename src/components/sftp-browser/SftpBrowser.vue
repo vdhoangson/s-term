@@ -57,9 +57,11 @@
     <!-- File List -->
     <v-list density="compact" class="overflow-y-auto py-0">
       <v-list-item
-        v-for="file in files"
+        v-for="(file, index) in files"
         :key="file.filename"
-        class="file-item"
+        class="file-item user-select-none"
+        :active="selected.has(file.filename)"
+        @click="selectFile($event, file, index)"
         @dblclick="handleFileClick(file)"
         @contextmenu="showFileContextMenu($event, file)"
       >
@@ -97,14 +99,15 @@
             </template>
             <v-list-item-title>{{ $t('sftp.contextMenu.edit') }}</v-list-item-title>
           </v-list-item>
-          <v-list-item
-            v-if="selectedFile && !selectedFile.isDirectory"
-            @click="downloadFile(selectedFile!)"
-          >
+          <v-list-item v-if="selectedFile" @click="downloadSelected">
             <template #prepend>
               <v-icon icon="mdi-download"></v-icon>
             </template>
-            <v-list-item-title>{{ $t('sftp.contextMenu.download') }}</v-list-item-title>
+            <v-list-item-title>{{
+              selected.size > 1
+                ? $t('sftp.contextMenu.downloadCount', { count: selected.size })
+                : $t('sftp.contextMenu.download')
+            }}</v-list-item-title>
           </v-list-item>
           <v-list-item v-if="selectedFile" @click="renameFile(selectedFile!)">
             <template #prepend>
@@ -200,6 +203,10 @@ const contextMenuX = ref(0)
 const contextMenuY = ref(0)
 const selectedFile = ref<FileInfo | null>(null)
 
+// Multi-selection by filename, anchor is the row index shift+click ranges from
+const selected = ref<Set<string>>(new Set())
+let anchor = -1
+
 // Delete Dialog state
 const showDeleteDialog = ref(false)
 
@@ -233,6 +240,8 @@ function joinPath(name: string) {
 
 async function loadFiles() {
   loading.value = true
+  selected.value = new Set()
+  anchor = -1
   try {
     const result = await window.electronAPI.sftp.list(props.sessionId, currentPath.value)
     files.value = result || []
@@ -271,9 +280,29 @@ function editFile(file: FileInfo) {
   showEditor.value = true
 }
 
+function selectFile(event: MouseEvent | KeyboardEvent, file: FileInfo, index: number) {
+  if (event.shiftKey && anchor >= 0) {
+    const [from, to] = [anchor, index].sort((a, b) => a - b)
+    selected.value = new Set(files.value.slice(from, to + 1).map(f => f.filename))
+    return
+  }
+  if (event.ctrlKey || event.metaKey) {
+    const next = new Set(selected.value)
+    if (!next.delete(file.filename)) next.add(file.filename)
+    selected.value = next
+  } else {
+    selected.value = new Set([file.filename])
+  }
+  anchor = index
+}
+
 function showFileContextMenu(event: MouseEvent, file: FileInfo) {
   event.preventDefault()
   selectedFile.value = file
+  if (!selected.value.has(file.filename)) {
+    selected.value = new Set([file.filename])
+    anchor = files.value.indexOf(file)
+  }
   showContextMenu.value = false // Close any open menu first
 
   const menuWidth = 160 // Estimated width of context menu
@@ -318,6 +347,26 @@ async function downloadFile(file: FileInfo) {
   } catch (error: any) {
     console.error('Download failed:', error)
     showError($t('sftp.errors.download'), error?.message || String(error), file.filename)
+  } finally {
+    transfer.value = null
+  }
+}
+
+// One plain file keeps the save dialog, anything else goes to a chosen folder
+async function downloadSelected() {
+  const picked = files.value.filter(f => selected.value.has(f.filename))
+  if (picked.length === 1 && !picked[0].isDirectory) return downloadFile(picked[0])
+
+  showContextMenu.value = false
+  try {
+    const dir = await window.electronAPI.sftp.downloadMany(
+      props.sessionId,
+      picked.map(f => joinPath(f.filename))
+    )
+    if (dir) snackbar.success($t('sftp.downloadedTo', { path: dir }))
+  } catch (error: any) {
+    console.error('Download failed:', error)
+    showError($t('sftp.errors.download'), error?.message || String(error))
   } finally {
     transfer.value = null
   }

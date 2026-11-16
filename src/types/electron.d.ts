@@ -49,6 +49,7 @@ export interface IElectronAPI {
   sftp: {
     list: (sessionId: string, remotePath: string) => Promise<any[]>
     download: (sessionId: string, remotePath: string) => Promise<string>
+    downloadMany: (sessionId: string, remotePaths: string[]) => Promise<string | null>
     upload: (sessionId: string, localPath: string, remotePath: string) => Promise<void>
     mkdir: (sessionId: string, remotePath: string) => Promise<void>
     delete: (sessionId: string, remotePath: string) => Promise<void>

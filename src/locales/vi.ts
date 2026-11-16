@@ -57,6 +57,7 @@ export default {
       newFolder: 'Thư mục mới',
       upload: 'Tải lên',
       download: 'Tải xuống',
+      downloadCount: 'Tải xuống ({count})',
       delete: 'Xóa',
     },
     contextMenu: {
@@ -66,6 +67,7 @@ export default {
       rename: 'Đổi tên',
     },
     emptyDirectory: 'Thư mục trống',
+    downloadedTo: 'Đã tải xuống vào {path}',
     newFolderDialog: {
       title: 'Tạo thư mục mới',
       label: 'Tên thư mục',

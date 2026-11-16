@@ -57,6 +57,7 @@ export default {
       newFolder: 'New Folder',
       upload: 'Upload',
       download: 'Download',
+      downloadCount: 'Download ({count})',
       delete: 'Delete',
     },
     contextMenu: {
@@ -66,6 +67,7 @@ export default {
       rename: 'Rename',
     },
     emptyDirectory: 'Empty directory',
+    downloadedTo: 'Downloaded to {path}',
     newFolderDialog: {
       title: 'New Folder',
       label: 'Folder name',

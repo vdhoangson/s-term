@@ -40,6 +40,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('sftp:list', sessionId, remotePath),
     download: (sessionId: string, remotePath: string) =>
       ipcRenderer.invoke('sftp:download', sessionId, remotePath),
+    downloadMany: (sessionId: string, remotePaths: string[]) =>
+      ipcRenderer.invoke('sftp:downloadMany', sessionId, remotePaths),
     upload: (sessionId: string, localPath: string, remotePath: string) =>
       ipcRenderer.invoke('sftp:upload', sessionId, localPath, remotePath),
     mkdir: (sessionId: string, remotePath: string) =>

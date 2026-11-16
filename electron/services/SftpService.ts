@@ -42,6 +42,10 @@ export class SftpService {
       return this.downloadFile(event.sender, sessionId, remotePath)
     })
 
+    ipcMain.handle('sftp:downloadMany', async (event, sessionId, remotePaths: string[]) => {
+      return this.downloadMany(event.sender, sessionId, remotePaths)
+    })
+
     ipcMain.handle('sftp:mkdir', async (event, sessionId, remotePath) => {
       return this.createDirectory(sessionId, remotePath)
     })
@@ -242,6 +246,63 @@ export class SftpService {
         resolve(localPath)
       })
     })
+  }
+
+  // Downloads files and folders (recursively) into a directory the user picks, null when canceled
+  private async downloadMany(
+    sender: WebContents,
+    sessionId: string,
+    remotePaths: string[]
+  ): Promise<string | null> {
+    const sftp = await this.ensureSftpConnected(sessionId)
+
+    const result = await dialog.showOpenDialog({
+      properties: ['openDirectory', 'createDirectory'],
+      defaultPath: path.join(os.homedir(), 'Downloads'),
+    })
+    if (result.canceled || !result.filePaths[0]) return null
+
+    const localDir = result.filePaths[0]
+    // Remote names are untrusted, they must never escape the chosen local directory
+    const isSafeName = (name: string) =>
+      !!name && name !== '.' && name !== '..' && !/[\\/]/.test(name)
+
+    const walk = async (remote: string, local: string, isDirectory: boolean): Promise<void> => {
+      if (!isDirectory) {
+        const progress = this.progressReporter(sender, sessionId, path.posix.basename(remote))
+        await new Promise<void>((resolve, reject) => {
+          sftp.fastGet(remote, local, { step: progress.step }, (err: any) =>
+            err ? reject(err) : resolve()
+          )
+        })
+        progress.done()
+        return
+      }
+
+      await fs.promises.mkdir(local, { recursive: true })
+      const list: any[] = await new Promise((resolve, reject) => {
+        sftp.readdir(remote, (err: any, items: any[]) => (err ? reject(err) : resolve(items)))
+      })
+      for (const item of list) {
+        // shortcut: symlinks inside folders are skipped to avoid loops, follow them with a visited set if users need it
+        if (!isSafeName(item.filename) || item.longname?.startsWith('l')) continue
+        await walk(
+          path.posix.join(remote, item.filename),
+          path.join(local, item.filename),
+          item.longname?.startsWith('d') || false
+        )
+      }
+    }
+
+    for (const remote of remotePaths) {
+      const name = path.posix.basename(remote)
+      if (!isSafeName(name)) throw new Error(`Invalid file name: ${remote}`)
+      const stats: any = await new Promise((resolve, reject) => {
+        sftp.stat(remote, (err: any, s: any) => (err ? reject(err) : resolve(s)))
+      })
+      await walk(remote, path.join(localDir, name), stats.isDirectory())
+    }
+    return localDir
   }
 
   private async deleteFile(sessionId: string, remotePath: string): Promise<void> {
