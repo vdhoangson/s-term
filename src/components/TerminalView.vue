@@ -1,5 +1,5 @@
 <template>
-  <div class="position-relative fill-height">
+  <div ref="rootEl" class="position-relative fill-height">
     <div ref="terminalContainer" class="terminal-container fill-height"></div>
 
     <TerminalSearch
@@ -14,18 +14,23 @@
       contained
       class="align-center justify-center"
       persistent
-      scrim="#000000"
-      opacity="0.5"
+      scrim="background"
+      opacity="0.85"
     >
-      <div class="text-center">
+      <div class="terminal-overlay" role="alert">
         <v-icon icon="mdi-lan-disconnect" color="error" size="64" class="mb-4" />
-        <div class="text-h5 text-white mb-2 font-weight-bold">Connection Lost</div>
-        <div class="text-body-1 text-medium-emphasis">
-          Press <kbd class="px-2 py-1 rounded bg-grey-darken-3">R</kbd> to reconnect<br />
-          <div class="mt-2">
-            Press <kbd class="px-2 py-1 rounded bg-grey-darken-3">Esc</kbd> to exit
-          </div>
-        </div>
+        <div class="terminal-overlay__title">{{ $t('terminal.connectionLost') }}</div>
+        <i18n-t
+          keypath="terminal.reconnectHint"
+          scope="global"
+          tag="div"
+          class="terminal-overlay__hint"
+        >
+          <template #key><kbd>R</kbd></template>
+        </i18n-t>
+        <i18n-t keypath="terminal.exitHint" scope="global" tag="div" class="terminal-overlay__hint">
+          <template #key><kbd>Esc</kbd></template>
+        </i18n-t>
       </div>
     </v-overlay>
   </div>
@@ -33,6 +38,7 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, computed, watch, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useTheme } from 'vuetify'
 import { Terminal, type IDisposable, type ITheme } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
@@ -60,20 +66,38 @@ const emit = defineEmits<{
   close: []
 }>()
 
+// xterm needs literal colors, so this is the only place hex lives. foreground/black mirror --st-text and
+// brightBlack mirrors --st-muted; the rest are warm ANSI hues, all >= 4.5:1 on the background except black.
 const terminalThemes: Record<'dark' | 'light', ITheme> = {
   dark: {
     background: '#0D0D0E',
-    foreground: '#D9D6CF',
+    foreground: '#ECE9E2',
     cursor: '#F2D27A',
     selectionBackground: 'rgba(212,175,55,0.3)',
+    black: '#2B2A27',
+    red: '#E8695D',
+    green: '#8DC274',
+    yellow: '#DDB04A',
+    blue: '#6B9FD8',
+    magenta: '#C48BCB',
+    cyan: '#5FBEBB',
+    white: '#C9C5BA',
+    brightBlack: '#9A968C',
+    brightRed: '#FF8F82',
+    brightGreen: '#AEDD94',
+    brightYellow: '#F2D27A',
+    brightBlue: '#97BEEB',
+    brightMagenta: '#DDAAE3',
+    brightCyan: '#8CDAD6',
+    brightWhite: '#F7F5EF',
   },
   light: {
     background: '#FDFCF8',
-    foreground: '#2A2722',
-    cursor: '#B8901F',
-    selectionBackground: 'rgba(184,144,31,0.25)',
-    // Default ANSI white/yellow are unreadable on a light background
-    black: '#2A2722',
+    foreground: '#1D1B16',
+    cursor: '#AA8419',
+    selectionBackground: 'rgba(170,132,25,0.25)',
+    // Every color except black/brightWhite stays >= 4.5:1 on the background; bright = a lighter/brighter hue
+    black: '#1D1B16',
     red: '#B3261E',
     green: '#3D7A1E',
     yellow: '#8A6510',
@@ -83,19 +107,21 @@ const terminalThemes: Record<'dark' | 'light', ITheme> = {
     white: '#6B665B',
     brightBlack: '#6B665B',
     brightRed: '#D32F2F',
-    brightGreen: '#4E9A3A',
-    brightYellow: '#B8901F',
-    brightBlue: '#3F78B3',
+    brightGreen: '#37832B',
+    brightYellow: '#946D00',
+    brightBlue: '#3A72AC',
     brightMagenta: '#A64CA6',
-    brightCyan: '#2A9AA3',
-    brightWhite: '#2A2722',
+    brightCyan: '#0F8088',
+    brightWhite: '#1D1B16',
   },
 }
 
+const { t } = useI18n()
 const vuetifyTheme = useTheme()
 const currentTerminalTheme = () =>
   terminalThemes[vuetifyTheme.global.name.value === 'light' ? 'light' : 'dark']
 
+const rootEl = ref<HTMLElement | null>(null)
 const terminalContainer = ref<HTMLElement | null>(null)
 const isConnected = computed(() => !disconnected.has(props.sessionId))
 let terminal: Terminal | null = null
@@ -145,7 +171,16 @@ watch(
 )
 
 const handleKeydown = (e: KeyboardEvent) => {
-  if (isConnected.value || !props.isActive) return
+  if (isConnected.value || !props.isActive || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return
+  // Only keys aimed at this pane (its terminal, overlay, or nothing focused): typing in the search box,
+  // sidebar, SFTP rename or a dialog must not reconnect/close the session
+  const target = e.target as HTMLElement
+  const inPane = target === document.body || rootEl.value?.contains(target)
+  if (
+    !inPane ||
+    target.closest('input, select, [contenteditable], textarea:not(.xterm-helper-textarea)')
+  )
+    return
 
   if (e.key.toLowerCase() === 'r') {
     emit('reconnect')
@@ -268,6 +303,8 @@ onMounted(() => {
     entry = createEntry(container)
   }
   terminal = entry.terminal
+  // A cached terminal missed any theme switch made while it was detached
+  terminal.options.theme = currentTerminalTheme()
   fitAddon = entry.fitAddon
   searchAddon = entry.searchAddon
 
@@ -318,7 +355,7 @@ onMounted(() => {
     const selection = terminal?.getSelection()
     if (selection) {
       navigator.clipboard.writeText(selection)
-      snackbar.success('Copied to clipboard')
+      snackbar.success(t('terminal.copied'))
     }
   })
 
@@ -345,3 +382,33 @@ onBeforeUnmount(() => {
   searchAddon = null
 })
 </script>
+
+<style scoped>
+.terminal-overlay {
+  color: var(--st-text);
+  text-align: center;
+}
+
+.terminal-overlay__title {
+  font-size: var(--st-fs-2xl);
+  font-weight: 600;
+}
+
+.terminal-overlay__hint {
+  margin-top: 8px;
+  color: var(--st-muted);
+  font-size: var(--st-fs-lg);
+}
+
+.terminal-overlay kbd {
+  display: inline-block;
+  padding: 0 8px;
+  border: 1px solid var(--st-border);
+  border-radius: var(--st-r-xs);
+  background: var(--st-panel-header);
+  color: var(--st-text);
+  font-family: var(--st-font-mono);
+  font-size: var(--st-fs-sm);
+  line-height: 20px;
+}
+</style>

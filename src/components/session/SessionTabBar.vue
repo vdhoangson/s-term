@@ -7,7 +7,7 @@
       :class="{ 'st-tab--active': activeSessionId === session.id }"
     >
       <button
-        class="st-tab__main"
+        class="st-tab__main st-focusable"
         :aria-current="activeSessionId === session.id ? 'true' : undefined"
         @click="$emit('select-session', session.id)"
       >
@@ -15,16 +15,17 @@
         <span class="st-tab__title">{{ session.title }}</span>
       </button>
       <button
-        class="st-tab__close"
+        class="st-icon-btn st-icon-btn--sm st-tab__close"
         :aria-label="$t('session.closeTab', { title: session.title })"
+        :title="$t('session.closeTab', { title: session.title })"
         @click.stop="$emit('close-session', session.id)"
       >
-        <v-icon icon="mdi-close" size="12" />
+        <v-icon icon="mdi-close" size="14" />
       </button>
     </div>
 
     <button
-      class="st-tabs__new"
+      class="st-icon-btn"
       :aria-label="$t('session.newTerminal')"
       :title="$t('session.newTerminal')"
       @click="terminalStore.createLocalSession(settingsStore.defaultShell || undefined)"
@@ -54,12 +55,14 @@ const settingsStore = useSettingsStore()
 </script>
 
 <style scoped>
+/* Padding keeps the focus rings of the tabs and the new-tab button inside the scroll container. */
 .st-tabs {
   display: flex;
   flex: 1 1 auto;
   align-items: center;
   gap: 4px;
   min-width: 0;
+  padding: 4px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -72,9 +75,9 @@ const settingsStore = useSettingsStore()
   display: flex;
   flex: 0 0 auto;
   align-items: center;
-  height: 30px;
+  height: var(--st-ctl-md);
   border: 1px solid transparent;
-  border-radius: 7px;
+  border-radius: var(--st-r-md);
   color: var(--st-muted);
 }
 
@@ -91,15 +94,16 @@ const settingsStore = useSettingsStore()
 
 .st-tab__main {
   display: flex;
+  align-self: stretch;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   max-width: 180px;
-  height: 28px;
-  padding: 0 6px 0 12px;
+  padding: 0 4px 0 12px;
   border: 0;
+  border-radius: var(--st-r-sm);
   background: transparent;
   color: inherit;
-  font-size: 12px;
+  font-size: var(--st-fs-sm);
   font-weight: 500;
   cursor: pointer;
 }
@@ -110,47 +114,7 @@ const settingsStore = useSettingsStore()
   white-space: nowrap;
 }
 
-.st-tab__close,
-.st-tabs__new {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-}
-
 .st-tab__close {
-  width: 22px;
-  height: 22px;
   margin-right: 4px;
-  border-radius: 4px;
-  opacity: 0.75;
-}
-
-.st-tab__close:hover {
-  background: var(--st-gold-tint);
-  opacity: 1;
-}
-
-.st-tabs__new {
-  flex: 0 0 auto;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  color: var(--st-muted);
-}
-
-.st-tabs__new:hover {
-  background: var(--st-gold-tint);
-  color: var(--st-gold-text);
-}
-
-.st-tab__main:focus-visible,
-.st-tab__close:focus-visible,
-.st-tabs__new:focus-visible {
-  outline: 2px solid var(--st-gold);
-  outline-offset: -2px;
 }
 </style>

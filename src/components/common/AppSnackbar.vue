@@ -7,8 +7,14 @@
   >
     {{ snackbarStore.message }}
 
-    <template v-slot:actions>
-      <v-btn icon="mdi-close" variant="text" @click="snackbarStore.show = false"></v-btn>
+    <template #actions>
+      <v-btn
+        icon="mdi-close"
+        size="small"
+        :aria-label="$t('common.close')"
+        :title="$t('common.close')"
+        @click="snackbarStore.show = false"
+      ></v-btn>
     </template>
   </v-snackbar>
 </template>

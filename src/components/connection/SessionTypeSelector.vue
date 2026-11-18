@@ -1,6 +1,12 @@
 <template>
   <div class="pa-2">
-    <v-slide-group v-model="selectedIndex" show-arrows center-active class="session-types">
+    <v-slide-group
+      v-model="selectedIndex"
+      mandatory
+      show-arrows
+      center-active
+      class="session-types"
+    >
       <v-slide-group-item
         v-for="(type, index) in types"
         :key="type.value"
@@ -8,28 +14,14 @@
         :value="index"
       >
         <v-btn
-          class="ma-1"
-          :variant="isSelected ? 'flat' : 'text'"
-          height="60"
-          width="70"
+          class="session-type ma-1"
+          :class="{ 'st-active': isSelected }"
+          :aria-pressed="isSelected"
           stacked
           @click="handleSelect(type.value, toggle)"
         >
-          <v-icon :icon="type.icon" size="24" :color="type.color" class="mb-1"></v-icon>
-          <span class="text-caption" style="font-size: 10px !important">{{ type.title }}</span>
-
-          <!-- Active Indicator Border -->
-          <div
-            v-if="isSelected"
-            class="position-absolute"
-            style="
-              bottom: 0;
-              left: 0;
-              right: 0;
-              height: 2px;
-              background-color: rgb(var(--v-theme-primary));
-            "
-          ></div>
+          <v-icon :icon="type.icon" size="24" class="mb-1"></v-icon>
+          <span class="session-type__label">{{ type.title }}</span>
         </v-btn>
       </v-slide-group-item>
     </v-slide-group>
@@ -72,5 +64,18 @@ function handleSelect(value: string, toggle: () => void) {
 <style scoped>
 .session-types {
   min-height: 80px;
+}
+
+.session-type.v-btn {
+  height: 64px;
+  border-radius: var(--st-r-md);
+}
+
+.session-type__label {
+  font-size: var(--st-fs-xs);
+}
+
+.session-type.st-active {
+  box-shadow: inset 0 0 0 1px var(--st-gold);
 }
 </style>

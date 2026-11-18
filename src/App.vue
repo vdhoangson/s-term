@@ -23,14 +23,14 @@
               <span class="st-block-title st-block-title--gold">{{ activeSession?.title }}</span>
               <span class="st-chip">
                 <span v-if="isSsh" class="st-chip__dot"></span>
-                {{ isSsh ? `ssh · ${activeSession?.config?.host}` : 'local' }}
+                {{ isSsh ? `ssh · ${activeSession?.config?.host}` : $t('shell.local') }}
               </span>
               <span class="st-spacer"></span>
               <button
                 v-if="activeSession"
                 class="st-icon-btn"
-                :aria-label="$t('common.close')"
-                :title="$t('common.close')"
+                :aria-label="$t('session.closeTab', { title: activeSession.title })"
+                :title="$t('session.closeTab', { title: activeSession.title })"
                 @click="closeSession(activeSession.id)"
               >
                 <v-icon icon="mdi-close" size="16" />
@@ -53,8 +53,8 @@
           <!-- Empty State -->
           <div v-else class="st-empty">
             <v-icon icon="mdi-console" size="64" class="mb-4" />
-            <div class="text-h5">{{ $t('session.noActiveSessions') }}</div>
-            <div class="text-body-2 mt-2">{{ $t('session.selectFromSidebar') }}</div>
+            <div class="st-empty__title">{{ $t('session.noActiveSessions') }}</div>
+            <div class="st-empty__hint">{{ $t('session.selectFromSidebar') }}</div>
           </div>
 
           <!-- Right column: SFTP + monitoring for SSH sessions -->
@@ -178,7 +178,7 @@ async function handleReconnect(sessionId: string) {
 
 function closeSession(id: string) {
   const session = store.sessions.find(s => s.id === id)
-  const title = session?.title || 'this session'
+  const title = session?.title || t('shell.thisSession')
 
   if (confirm(t('session.closeConfirm', { title }))) {
     window.electronAPI.session.kill(id)
@@ -190,7 +190,7 @@ function closeSession(id: string) {
 function closeTab(id: string) {
   const tab = store.tabs.find(tb => leafIds(tb.root).includes(id))
   if (!tab) return
-  const title = store.sessions.find(s => s.id === id)?.title || 'this session'
+  const title = store.sessions.find(s => s.id === id)?.title || t('shell.thisSession')
 
   if (confirm(t('session.closeConfirm', { title }))) {
     leafIds(tab.root).forEach(sessionId => {
@@ -231,9 +231,9 @@ onMounted(() => {
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  background: rgb(var(--v-theme-background));
+  background: var(--st-bg);
   color: var(--st-text);
-  font-size: 13px;
+  font-size: var(--st-fs-md);
 }
 
 .st-workspace {
@@ -274,16 +274,16 @@ onMounted(() => {
 .st-chip {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   min-width: 0;
-  height: 20px;
+  height: var(--st-ctl-sm);
   padding: 0 8px;
   border: 1px solid var(--st-chip-border);
-  border-radius: 10px;
+  border-radius: var(--st-r-xl);
   background: var(--st-chip-bg);
   color: var(--st-chip-text);
   font-family: var(--st-font-mono);
-  font-size: 11px;
+  font-size: var(--st-fs-xs);
   white-space: nowrap;
 }
 
@@ -291,7 +291,7 @@ onMounted(() => {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--st-ok);
+  background: rgb(var(--v-theme-success));
 }
 
 .st-empty {
@@ -302,9 +302,20 @@ onMounted(() => {
   justify-content: center;
   min-width: 0;
   border: 1px dashed var(--st-border);
-  border-radius: 10px;
+  border-radius: var(--st-r-lg);
   color: var(--st-muted);
   text-align: center;
+}
+
+.st-empty__title {
+  color: var(--st-text);
+  font-size: var(--st-fs-2xl);
+  font-weight: 600;
+}
+
+.st-empty__hint {
+  margin-top: 8px;
+  font-size: var(--st-fs-md);
 }
 
 .st-empty .v-icon {

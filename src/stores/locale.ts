@@ -11,10 +11,12 @@ export const useLocaleStore = defineStore('locale', () => {
     currentLocale.value = locale
     localStorage.setItem('locale', locale)
     i18n.global.locale.value = locale
+    document.documentElement.lang = locale
   }
 
   // Sync with i18n on init
   i18n.global.locale.value = currentLocale.value
+  document.documentElement.lang = currentLocale.value
 
   return {
     currentLocale,

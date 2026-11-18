@@ -9,7 +9,6 @@ export interface ISessionType {
   title: string
   value: string
   icon: string
-  color: string
 }
 
 export interface Connection {

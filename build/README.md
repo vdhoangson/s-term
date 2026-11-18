@@ -1,17 +1,17 @@
 # App Icons
 
-Place your application icons here:
+Icons live here, at the paths set in `electron-builder.json`. The logo source is `src/assets/logo.svg`.
 
 ## Required Files
 
 ### macOS
-- `icon.icns` - macOS icon bundle (512x512 recommended)
+- `icons/mac/icon.icns` - macOS icon bundle (512x512 recommended)
 
-### Windows  
-- `icon.ico` - Windows icon (256x256 recommended)
+### Windows
+- `icons/win/icon.ico` - Windows icon (256x256 recommended)
 
 ### Linux
-- `icons/` directory with PNG icons in multiple sizes:
+- `icons/png/` directory with PNG icons in multiple sizes:
   - `16x16.png`
   - `32x32.png`
   - `48x48.png`
@@ -35,9 +35,3 @@ electron-icon-maker --input=your-icon.png --output=build
 Or use online tools:
 - https://www.electronjs.org/docs/latest/tutorial/icon-generation
 - https://icon.kitchen/
-
-## Current Status
-
-⚠️ **No icons configured yet**
-
-Add your app icon to enable proper branding on all platforms.

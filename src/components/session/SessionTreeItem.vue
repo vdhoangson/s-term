@@ -1,42 +1,47 @@
 <template>
   <!-- Folder -->
-  <!-- Folder -->
   <div v-if="item.type === 'folder'">
     <v-list-item
-      :title="item.name"
-      density="compact"
-      class="folder-item"
+      class="tree-row st-focusable st-focusable--inset"
       @click="folderOpen = !folderOpen"
     >
       <template #prepend>
-        <v-icon :icon="folderOpen ? 'mdi-folder-open' : 'mdi-folder'" color="primary" />
+        <v-icon :icon="folderOpen ? 'mdi-folder-open' : 'mdi-folder'" class="st-block-icon" />
+      </template>
+      <template #title>
+        <span class="st-label">{{ item.name }}</span>
       </template>
       <template #append>
         <v-menu @click.stop>
           <template #activator="{ props: menuProps }">
             <v-btn
               icon="mdi-dots-vertical"
-              variant="text"
-              size="x-small"
+              size="small"
+              :aria-label="$t('session.itemActions', { name: item.name })"
+              :title="$t('session.itemActions', { name: item.name })"
               v-bind="menuProps"
               @click.stop
             />
           </template>
-          <v-list density="compact">
+          <v-list>
             <v-list-item
               prepend-icon="mdi-plus"
-              title="New Session"
+              :title="$t('session.newSession')"
               @click="$emit('create-session', item.id)"
             />
             <v-list-item
               prepend-icon="mdi-folder-plus"
-              title="New Folder"
+              :title="$t('sidebar.newFolder')"
               @click="$emit('create-folder', item.id)"
             />
-            <v-list-item prepend-icon="mdi-pencil" title="Rename" @click="$emit('rename', item)" />
+            <v-list-item
+              prepend-icon="mdi-pencil"
+              :title="$t('session.rename')"
+              @click="$emit('rename', item)"
+            />
             <v-list-item
               prepend-icon="mdi-delete"
-              title="Delete"
+              :title="$t('common.delete')"
               @click="$emit('delete-folder', item.id)"
             />
           </v-list>
@@ -52,11 +57,11 @@
           tag="div"
           group="sessions"
           :disabled="filtering"
+          :animation="200"
+          class="pa-0"
           @change="onDragChange"
           @start="$emit('drag-start')"
           @end="$emit('drag-end')"
-          :animation="200"
-          class="pa-0"
         >
           <template #item="{ element }">
             <div>
@@ -85,32 +90,39 @@
     v-else
     :title="item.name"
     :value="item.id"
-    density="compact"
-    class="connection-item pl-6"
+    class="tree-row st-focusable st-focusable--inset connection-item pl-6"
+    active-class="st-active"
     @dblclick="handleSelect"
+    @keydown.enter.self="handleSelect"
   >
     <template #prepend>
       <v-icon
         :icon="isSshConnection(item.data) ? 'mdi-key-variant' : 'mdi-console'"
-        :color="isSshConnection(item.data) ? 'primary' : 'grey'"
+        :class="isSshConnection(item.data) ? 'st-block-icon' : 'st-block-icon--muted'"
         size="small"
       ></v-icon>
     </template>
 
     <template #append>
       <v-menu>
-        <template #activator="{ props }">
-          <v-btn icon="mdi-dots-vertical" variant="text" size="x-small" v-bind="props"></v-btn>
+        <template #activator="{ props: menuProps }">
+          <v-btn
+            icon="mdi-dots-vertical"
+            size="small"
+            :aria-label="$t('session.itemActions', { name: item.name })"
+            :title="$t('session.itemActions', { name: item.name })"
+            v-bind="menuProps"
+          ></v-btn>
         </template>
-        <v-list density="compact">
+        <v-list>
           <v-list-item
             prepend-icon="mdi-pencil"
-            title="Edit"
+            :title="$t('common.edit')"
             @click.stop="$emit('edit', item)"
           ></v-list-item>
           <v-list-item
             prepend-icon="mdi-delete"
-            title="Delete"
+            :title="$t('common.delete')"
             @click.stop="$emit('delete', item.id)"
           ></v-list-item>
         </v-list>
@@ -186,22 +198,11 @@ function updateListOrder(nodes: TreeNode[], parentId: string | null) {
 </script>
 
 <style scoped>
-.folder-item :deep(.v-list-item-title) {
-  color: var(--st-muted);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-}
-
-.connection-item {
-  min-height: 32px !important;
-  border-radius: 7px;
-}
-
-.connection-item.v-list-item--active {
-  background: var(--st-gold-tint);
-  color: var(--st-gold-text);
+/* Vuetify's compact one-line row is 40px and its nav "rounded" utility is !important. */
+.tree-row.v-list-item {
+  --v-list-prepend-gap: 12px; /* icon to name; Vuetify's default is 32px */
+  min-height: var(--st-ctl-lg);
+  border-radius: var(--st-r-sm) !important;
 }
 
 .connection-item.v-list-item--active :deep(.v-list-item__overlay) {

@@ -4,8 +4,7 @@
     <v-sheet class="pa-2" style="flex-shrink: 0">
       <v-text-field
         v-model="currentPath"
-        density="compact"
-        variant="outlined"
+        :aria-label="$t('sftp.pathLabel')"
         hide-details
         prepend-inner-icon="mdi-folder"
         readonly
@@ -14,15 +13,16 @@
         <template #append-inner>
           <v-btn
             icon="mdi-refresh"
-            variant="text"
             size="small"
+            :aria-label="$t('sftp.buttons.refresh')"
+            :title="$t('sftp.buttons.refresh')"
             :loading="loading"
             @click="refreshFiles"
           ></v-btn>
         </template>
       </v-text-field>
 
-      <div class="d-flex gap-1">
+      <div class="d-flex ga-2">
         <v-btn
           prepend-icon="mdi-arrow-up"
           size="small"
@@ -51,22 +51,25 @@
         <v-spacer></v-spacer>
         <span>{{ transfer.percent }}%</span>
       </div>
-      <v-progress-linear :model-value="transfer.percent" color="primary" height="6" rounded />
+      <v-progress-linear :model-value="transfer.percent" height="6" />
     </v-sheet>
 
     <!-- File List -->
-    <v-list density="compact" class="overflow-y-auto py-0">
+    <v-list class="overflow-y-auto py-0">
       <v-list-item
         v-for="(file, index) in files"
         :key="file.filename"
-        class="file-item user-select-none"
+        class="file-item st-focusable st-focusable--inset user-select-none"
         :active="selected.has(file.filename)"
         @click="selectFile($event, file, index)"
         @dblclick="handleFileClick(file)"
+        @keydown.enter.self="handleFileClick(file)"
         @contextmenu="showFileContextMenu($event, file)"
       >
         <template #prepend>
-          <v-icon :color="getFileColor(file)">{{ getFileIcon(file) }}</v-icon>
+          <v-icon :class="file.isDirectory ? 'st-block-icon' : 'st-block-icon--muted'">{{
+            getFileIcon(file)
+          }}</v-icon>
         </template>
 
         <v-list-item-title>{{ file.filename }}</v-list-item-title>
@@ -77,8 +80,9 @@
         <template #append>
           <v-btn
             icon="mdi-dots-vertical"
-            variant="text"
-            size="x-small"
+            size="small"
+            :aria-label="$t('sftp.fileActions', { name: file.filename })"
+            :title="$t('sftp.fileActions', { name: file.filename })"
             @click.stop="showFileContextMenu($event, file)"
           ></v-btn>
         </template>
@@ -90,7 +94,7 @@
         :target="[contextMenuX, contextMenuY]"
         location="bottom start"
       >
-        <v-list density="compact">
+        <v-list>
           <v-list-item
             v-if="selectedFile && !selectedFile.isDirectory"
             @click="editFile(selectedFile!)"
@@ -106,7 +110,7 @@
             </template>
             <v-list-item-title>{{
               selected.size > 1
-                ? $t('sftp.contextMenu.downloadCount', { count: selected.size })
+                ? $t('sftp.buttons.downloadCount', { count: selected.size })
                 : $t('sftp.contextMenu.download')
             }}</v-list-item-title>
           </v-list-item>
@@ -126,10 +130,10 @@
       </v-menu>
 
       <v-list-item v-if="files.length === 0 && !loading">
-        <v-list-item-title class="text-grey text-center">
+        <v-list-item-title class="sftp-empty text-center">
           <div class="py-8">
-            <v-icon size="48" color="grey">mdi-folder-open</v-icon>
-            <div class="text-body-2 mt-2">{{ $t('sftp.emptyDirectory') }}</div>
+            <v-icon size="48">mdi-folder-open</v-icon>
+            <div class="mt-2">{{ $t('sftp.emptyDirectory') }}</div>
           </div>
         </v-list-item-title>
       </v-list-item>
@@ -266,6 +270,7 @@ function goUp() {
 }
 
 function handleFileClick(file: FileInfo) {
+  if (loading.value) return // a repeat Enter/double-click would join the path onto the old listing
   if (file.isDirectory) {
     currentPath.value = joinPath(file.filename)
     loadFiles()
@@ -443,11 +448,6 @@ function getFileIcon(file: FileInfo) {
   return iconMap[ext || ''] || 'mdi-file'
 }
 
-function getFileColor(file: FileInfo) {
-  if (file.isDirectory) return 'amber'
-  return 'grey'
-}
-
 function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 B'
   const k = 1024
@@ -460,3 +460,10 @@ function showError(title: string, message: string, details?: string) {
   snackbar.error(`${title}${details ? ` (${details})` : ''}: ${message}`, 5000)
 }
 </script>
+
+<style scoped>
+.sftp-empty {
+  color: var(--st-muted);
+  font-size: var(--st-fs-lg);
+}
+</style>

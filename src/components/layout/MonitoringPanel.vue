@@ -17,7 +17,7 @@
 
     <div class="st-monitor__body">
       <div class="st-monitor__cpu">
-        <span class="st-monitor__label">{{ $t('monitoring.metrics.cpu') }} · 60s</span>
+        <span class="st-label">{{ $t('monitoring.cpuWindow') }}</span>
         <span class="st-monitor__cpu-value">{{ metrics.cpu }}%</span>
       </div>
 
@@ -209,7 +209,7 @@ async function fetchMetrics() {
   flex-direction: column;
   gap: 12px;
   min-height: 0;
-  padding: 12px 14px;
+  padding: 12px 16px;
   overflow-y: auto;
 }
 
@@ -219,17 +219,9 @@ async function fetchMetrics() {
   justify-content: space-between;
 }
 
-.st-monitor__label {
-  color: var(--st-muted);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-}
-
 .st-monitor__cpu-value {
   color: var(--st-gold-text);
-  font-size: 20px;
+  font-size: var(--st-fs-2xl);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -263,19 +255,15 @@ async function fetchMetrics() {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px 16px;
-  font-size: 12px;
+  font-size: var(--st-fs-sm);
 }
 
 .st-monitor__meter,
 .st-monitor__stat {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
-}
-
-.st-monitor__stat {
-  gap: 2px;
 }
 
 .st-monitor__row {
@@ -290,7 +278,7 @@ async function fetchMetrics() {
 
 .st-monitor__value {
   overflow: hidden;
-  font-size: 14px;
+  font-size: var(--st-fs-lg);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   text-overflow: ellipsis;
@@ -298,15 +286,15 @@ async function fetchMetrics() {
 }
 
 .st-meter {
-  height: 6px;
-  border-radius: 3px;
+  height: 8px;
+  border-radius: var(--st-r-xs);
   background: var(--st-track);
 }
 
 .st-meter > i {
   display: block;
   height: 100%;
-  border-radius: 3px;
+  border-radius: var(--st-r-xs);
   background: var(--st-meter);
 }
 </style>

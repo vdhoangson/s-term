@@ -93,20 +93,20 @@ release/
 
 ## Icons
 
-Place your app icons in the `build/` directory:
+App icons live in `build/icons/` (paths match `electron-builder.json`). The logo source is `src/assets/logo.svg`.
 
-- `build/icon.icns` - macOS icon (512x512)
-- `build/icon.ico` - Windows icon (256x256)
-- `build/icons/` - Linux icons (PNG format, multiple sizes)
+- `build/icons/mac/icon.icns` - macOS icon (512x512)
+- `build/icons/win/icon.ico` - Windows icon (256x256)
+- `build/icons/png/` - Linux icons (PNG format, multiple sizes)
 
-You can generate icons from a single PNG using:
+You can regenerate all icons from a 1024x1024 PNG exported from `src/assets/logo.svg`:
 
 ```bash
 # Install icon generator
 npm install -g electron-icon-maker
 
 # Generate all icons
-electron-icon-maker --input=icon.png --output=build
+electron-icon-maker --input=build/icons/png/1024x1024.png --output=build
 ```
 
 ## Code Signing

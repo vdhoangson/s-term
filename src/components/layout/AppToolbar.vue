@@ -1,7 +1,7 @@
 <template>
   <header class="st-tabbar">
     <div class="st-tabbar__brand">
-      <div class="st-tabbar__logo" aria-hidden="true">S</div>
+      <img :src="logoUrl" alt="" width="24" height="24" />
       <span class="st-tabbar__name">S-Term</span>
     </div>
 
@@ -24,6 +24,7 @@ import LanguageSwitcher from './LanguageSwitcher.vue'
 import ThemeSwitcher from './ThemeSwitcher.vue'
 import SessionTabBar from '../session/SessionTabBar.vue'
 import { ISession } from '@/types/session'
+import logoUrl from '@/assets/logo.svg'
 
 defineProps<{
   sessions: ISession[]
@@ -41,7 +42,7 @@ defineEmits<{
   display: flex;
   flex: 0 0 44px;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   height: 44px;
   padding: 0 12px;
   border-bottom: 1px solid var(--st-border-soft);
@@ -54,22 +55,9 @@ defineEmits<{
   gap: 8px;
 }
 
-.st-tabbar__logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  background: var(--st-metal);
-  color: #1a1405;
-  font-size: 13px;
-  font-weight: 700;
-}
-
 .st-tabbar__name {
+  font-size: var(--st-fs-lg);
   font-weight: 600;
-  letter-spacing: 0.2px;
 }
 
 .st-tabbar__actions {

@@ -3,8 +3,8 @@
     <button
       v-for="item in topItems"
       :key="item.key"
-      class="st-widget"
-      :class="{ 'st-widget--active': item.active }"
+      class="st-icon-btn st-widget"
+      :class="{ 'st-active': item.active }"
       :disabled="item.disabled"
       :aria-label="$t(`widgets.${item.key}`)"
       :aria-pressed="item.active"
@@ -20,7 +20,7 @@
     <button
       v-for="item in bottomItems"
       :key="item.key"
-      class="st-widget"
+      class="st-icon-btn st-widget"
       :aria-label="$t(`widgets.${item.key}`)"
       :title="$t(`widgets.${item.key}`)"
       @click="item.onClick"
@@ -86,43 +86,17 @@ const bottomItems = [
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 6px 0;
+  padding: 8px 0;
 }
 
+/* Size and layout only: colors, hover, active and focus come from .st-icon-btn */
 .st-widget {
-  display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
   gap: 4px;
   width: 52px;
   height: 52px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--st-muted);
-  font-size: 10px;
+  border-radius: var(--st-r-md);
+  font-size: var(--st-fs-xs);
   text-transform: lowercase;
-  cursor: pointer;
-}
-
-.st-widget:hover:not(:disabled) {
-  background: var(--st-gold-tint);
-  color: var(--st-gold-text);
-}
-
-.st-widget--active {
-  background: var(--st-gold-tint);
-  color: var(--st-gold-text);
-}
-
-.st-widget:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.st-widget:focus-visible {
-  outline: 2px solid var(--st-gold);
-  outline-offset: -2px;
 }
 </style>

@@ -10,7 +10,7 @@
         <v-icon :icon="themeIcon" size="18" />
       </button>
     </template>
-    <v-list density="compact">
+    <v-list>
       <v-list-item
         :active="themeStore.currentTheme === 'light'"
         @click="themeStore.setTheme('light')"

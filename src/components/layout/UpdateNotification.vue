@@ -8,6 +8,7 @@
         <v-progress-linear
           v-if="showProgress"
           :model-value="progress"
+          color="rgb(var(--v-theme-on-primary))"
           class="mt-2"
           height="4"
         ></v-progress-linear>
@@ -15,13 +16,13 @@
     </div>
 
     <template #actions>
-      <v-btn v-if="showDownloadButton" variant="text" @click="downloadUpdate">
+      <v-btn v-if="showDownloadButton" @click="downloadUpdate">
         {{ t('updater.download') }}
       </v-btn>
-      <v-btn v-if="showInstallButton" variant="text" @click="installUpdate">
+      <v-btn v-if="showInstallButton" @click="installUpdate">
         {{ t('updater.install') }}
       </v-btn>
-      <v-btn variant="text" @click="close"> {{ t('updater.later') }} </v-btn>
+      <v-btn @click="close">{{ t('updater.later') }}</v-btn>
     </template>
   </v-snackbar>
 </template>

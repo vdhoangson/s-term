@@ -1,4 +1,23 @@
-/* global styles */
+/*
+ * s-term design system. Tokens are --st-* below; Vuetify theme colors (src/plugins/vuetify.ts) mirror them.
+ * Spacing: 4px grid (4/8/12/16/20/24), no tokens. Use only the scales below, never ad-hoc px values.
+ * Type --st-fs-*: xs 11 (labels, chips) | sm 12 | md 13 (body) | lg 14 | xl 16 (dialog title) | 2xl 20.
+ * Radius --st-r-*: xs 4 | sm 6 (buttons, inputs) | md 8 (menus, cards) | lg 10 (blocks) | xl 12 (dialogs).
+ * Control height --st-ctl-*: sm 24 | md 28 (icon buttons, inputs) | lg 36 (primary buttons, block headers).
+ * Buttons (v-btn defaults to variant="text"): cancel = text, no color | confirm = variant="flat" color="primary"
+ *   | destructive = variant="flat" color="error" | icon-only = .st-icon-btn (.st-icon-btn--sm) or
+ *   <v-btn icon variant="text" size="small">, always with aria-label | toolbar/secondary actions =
+ *   variant="tonal" size="small".
+ * Active/selected state = .st-active (gold-tint bg + gold-text) on .st-icon-btn, .v-btn or .v-list-item
+ *   (v-list-item: active-class="st-active"). Row/folder icons: .st-block-icon (gold) | --muted.
+ * Dialogs: v-card inside v-dialog gets .st-dialog automatically (nested Vuetify default). Unitless max-width:
+ *   sm 420 confirm/prompt | md 560 settings/about | lg 720 new session.
+ * Native fields: .st-input. Uppercase micro labels: .st-label. Add .st-focusable to custom focusable elements
+ *   (plus .st-focusable--inset inside scrolling lists, where overflow would clip the ring): the single
+ *   focus ring (--st-focus) lives in one rule below, never per component. It also covers .v-btn, .st-input
+ *   and Vuetify switches/checkboxes/radios.
+ * Status colors: rgb(var(--v-theme-error|success|warning|info)), never hex in components.
+ */
 :root {
   /* No webfonts are bundled (offline app): Inter / JetBrains Mono are used only if installed. */
   --st-font-ui: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
@@ -11,6 +30,22 @@
     #d4af37 62%,
     #8c6a1c 100%
   );
+  --st-fs-xs: 11px;
+  --st-fs-sm: 12px;
+  --st-fs-md: 13px;
+  --st-fs-lg: 14px;
+  --st-fs-xl: 16px;
+  --st-fs-2xl: 20px;
+  --st-r-xs: 4px;
+  --st-r-sm: 6px;
+  --st-r-md: 8px;
+  --st-r-lg: 10px;
+  --st-r-xl: 12px;
+  --st-ctl-sm: 24px;
+  --st-ctl-md: 28px;
+  --st-ctl-lg: 36px;
+  --st-on-gold: #1a1405;
+  --st-label-tracking: 0.6px;
 }
 
 .v-theme--dark {
@@ -21,13 +56,12 @@
   --st-border-soft: #1c1c1f;
   --st-text: #ece9e2;
   --st-muted: #9a968c;
-  --st-sub: #a9a190;
   --st-gold: #d4af37;
   --st-gold-text: #f2d27a;
   --st-gold-tint: rgba(212, 175, 55, 0.1);
   --st-input-bg: #0c0c0d;
+  --st-input-border: #6e6a60;
   --st-track: #1f1f23;
-  --st-ok: #7cc66a;
   --st-meter: linear-gradient(90deg, #9c7a22, #f2d27a);
   --st-spark-fill: rgba(212, 175, 55, 0.14);
   --st-tab-bg: #17150f;
@@ -38,6 +72,7 @@
   --st-term-bg: #0d0d0e;
   --st-term-header: #141310;
   --st-term-header-border: #2a261a;
+  --st-focus: #d4af37;
   --st-focus-border: #c9a43e;
   --st-ring: rgba(212, 175, 55, 0.12);
   --st-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
@@ -53,13 +88,12 @@
   --st-border-soft: #e6e0d2;
   --st-text: #1d1b16;
   --st-muted: #6b665b;
-  --st-sub: #74613a;
-  --st-gold: #b8901f;
+  --st-gold: #aa8419; /* >= 3:1 on #fff and --st-bg */
   --st-gold-text: #8a6510;
   --st-gold-tint: rgba(212, 175, 55, 0.16);
   --st-input-bg: #f7f4ec;
+  --st-input-border: #857f70;
   --st-track: #eee8da;
-  --st-ok: #4e9a3a;
   --st-meter: linear-gradient(90deg, #9c7a22, #e9c766);
   --st-spark-fill: rgba(212, 175, 55, 0.2);
   --st-tab-bg: #fff8e1;
@@ -70,7 +104,8 @@
   --st-term-bg: #fdfcf8;
   --st-term-header: #fbf5e3;
   --st-term-header-border: #eadfc0;
-  --st-focus-border: #b8901f;
+  --st-focus: #8a6510;
+  --st-focus-border: #aa8419;
   --st-ring: rgba(184, 144, 31, 0.16);
   --st-shadow: 0 8px 30px rgba(80, 60, 10, 0.08);
   --st-scroll: rgba(107, 102, 91, 0.3);
@@ -124,12 +159,12 @@ button {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--st-scroll, rgba(128, 128, 128, 0.35));
-  border-radius: 4px;
+  background: var(--st-scroll);
+  border-radius: var(--st-r-xs);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--st-scroll-hover, rgba(128, 128, 128, 0.6));
+  background: var(--st-scroll-hover);
 }
 
 /* Blocks (Wave-style panels) */
@@ -140,17 +175,17 @@ button {
   min-height: 0;
   overflow: hidden;
   border: 1px solid var(--st-border);
-  border-radius: 10px;
+  border-radius: var(--st-r-lg);
   background: var(--st-panel);
   color: var(--st-text);
 }
 
 .st-block-header {
   display: flex;
-  flex: 0 0 36px;
+  flex: 0 0 var(--st-ctl-lg);
   align-items: center;
   gap: 8px;
-  height: 36px;
+  height: var(--st-ctl-lg);
   padding: 0 8px 0 12px;
   border-bottom: 1px solid var(--st-border-soft);
   background: var(--st-panel-header);
@@ -170,7 +205,7 @@ button {
 }
 
 .st-block-title {
-  font-size: 12.5px;
+  font-size: var(--st-fs-sm);
   font-weight: 600;
 }
 
@@ -182,7 +217,7 @@ button {
   min-width: 0;
   overflow: hidden;
   color: var(--st-muted);
-  font-size: 12px;
+  font-size: var(--st-fs-sm);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -191,41 +226,64 @@ button {
   color: var(--st-gold);
 }
 
+.st-block-icon--muted {
+  color: var(--st-muted);
+}
+
+/* Vuetify dims list icons to 0.6, which drops them below 3:1 in the light theme. */
+.v-list-item__prepend > .v-icon:is(.st-block-icon, .st-block-icon--muted) {
+  opacity: 1;
+}
+
 .st-spacer {
   flex: 1;
 }
 
+/* Square icon button; pair with aria-label. */
 .st-icon-btn {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: var(--st-ctl-md);
+  height: var(--st-ctl-md);
   border: 0;
-  border-radius: 5px;
+  border-radius: var(--st-r-sm);
   background: transparent;
   color: var(--st-muted);
   cursor: pointer;
 }
 
-.st-icon-btn:hover {
+.st-icon-btn--sm {
+  width: var(--st-ctl-sm);
+  height: var(--st-ctl-sm);
+}
+
+.st-icon-btn:hover,
+:is(.st-icon-btn, .v-btn, .v-list-item).st-active {
   background: var(--st-gold-tint);
   color: var(--st-gold-text);
+}
+
+.st-icon-btn:disabled {
+  background: transparent;
+  color: var(--st-muted);
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .st-btn-gold {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   width: 100%;
-  height: 36px;
+  height: var(--st-ctl-lg);
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--st-r-md);
   background: var(--st-metal);
-  color: #1a1405;
-  font-size: 12.5px;
+  color: var(--st-on-gold);
+  font-size: var(--st-fs-md);
   font-weight: 600;
   cursor: pointer;
 }
@@ -234,17 +292,105 @@ button {
   filter: brightness(1.08);
 }
 
+/* The one focus ring (>= 3:1 on panels in both themes). */
 .st-icon-btn:focus-visible,
-.st-btn-gold:focus-visible {
-  outline: 2px solid var(--st-gold);
+.st-btn-gold:focus-visible,
+.st-focusable:focus-visible,
+.st-input:focus-visible,
+.v-btn:focus-visible,
+.v-selection-control--focus-visible:is(.v-checkbox-btn, .v-radio) .v-selection-control__input,
+.v-switch .v-selection-control--focus-visible .v-selection-control__wrapper {
+  outline: 2px solid var(--st-focus);
   outline-offset: 1px;
+}
+
+.st-focusable--inset:focus-visible {
+  outline-offset: -2px;
+}
+
+/* The inset switch's 32px track overhangs its 28px wrapper, so the ring needs room. */
+.v-switch .v-selection-control--focus-visible .v-selection-control__wrapper {
+  border-radius: 9999px;
+  outline-offset: 4px;
+}
+
+/* Vuetify's own faint focus border would sit under the inset ring on list rows. */
+.v-list-item.st-focusable:focus-visible::after {
+  opacity: 0;
+}
+
+/* Uppercase micro label */
+.st-label {
+  color: var(--st-muted);
+  font-size: var(--st-fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--st-label-tracking);
+  text-transform: uppercase;
+}
+
+/* Native text input; --st-input-border is >= 3:1 against --st-input-bg and --st-panel. */
+.st-input {
+  height: var(--st-ctl-md);
+  padding: 0 12px;
+  border: 1px solid var(--st-input-border);
+  border-radius: var(--st-r-sm);
+  background: var(--st-input-bg);
+  color: var(--st-text);
+  font-family: inherit;
+  font-size: var(--st-fs-sm);
+}
+
+.st-input::placeholder {
+  color: var(--st-muted);
+}
+
+/* Applied to every v-card in a v-dialog via Vuetify defaults (plugins/vuetify.ts). The long selector
+   outranks VDialog.css (> .v-card { border-radius: 4px }). */
+.v-dialog > .v-overlay__content > .v-card.st-dialog {
+  border: 1px solid var(--st-border);
+  border-radius: var(--st-r-xl);
+  background: var(--st-panel);
+}
+
+.v-dialog--fullscreen > .v-overlay__content > .v-card.st-dialog {
+  border: 0;
+  border-radius: 0;
+}
+
+.st-dialog .v-card-title {
+  padding: 16px 20px 4px;
+  font-size: var(--st-fs-xl);
+  font-weight: 600;
+}
+
+/* Same long selector as above: Vuetify's dialog > card > text rule (0,4,0) sets 16px 24px 24px. */
+.v-dialog > .v-overlay__content > .v-card.st-dialog > .v-card-text {
+  padding: 12px 20px;
+}
+
+.st-dialog .v-card-actions {
+  gap: 8px;
+  padding: 8px 16px 16px;
+}
+
+/* Light theme: Vuetify's 0.38 outline opacity (x 0.87 text alpha) is 2.3:1 on #fff; 0.55 reaches >= 3:1
+   (dark already passes). :where keeps specificity at (0,2,0) so Vuetify's hover/focus rules still win. */
+:where(.v-theme--light) .v-field--variant-outlined .v-field__outline {
+  --v-field-border-opacity: 0.55;
+}
+
+/* Overlay content (dialogs, menus) lives outside .v-application, so list both. */
+.v-application .v-btn,
+.v-overlay-container .v-btn {
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 /* Terminal */
 .terminal-container {
   width: 100%;
   height: 100%;
-  background-color: var(--st-term-bg, #0d0d0e);
+  background-color: var(--st-term-bg);
   overflow: hidden;
   user-select: text;
   -webkit-user-select: text;

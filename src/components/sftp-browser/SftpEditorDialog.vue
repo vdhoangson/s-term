@@ -7,16 +7,23 @@
         </v-toolbar-title>
         <v-btn
           prepend-icon="mdi-content-save"
-          variant="tonal"
+          variant="flat"
+          color="primary"
           :disabled="!ready || !dirty"
           :loading="saving"
           @click="save"
           >{{ $t('sftp.editor.save') }}</v-btn
         >
-        <v-btn icon="mdi-close" :aria-label="$t('common.close')" @click="requestClose"></v-btn>
+        <v-btn
+          icon="mdi-close"
+          size="small"
+          :aria-label="$t('common.close')"
+          :title="$t('common.close')"
+          @click="requestClose"
+        ></v-btn>
       </v-toolbar>
 
-      <v-progress-linear v-if="loading" indeterminate color="primary"></v-progress-linear>
+      <v-progress-linear v-if="loading" indeterminate></v-progress-linear>
       <v-alert v-if="loadError" type="error" variant="tonal" class="ma-4">
         {{ $t('sftp.editor.loadFailed') }}: {{ loadError }}
       </v-alert>
@@ -25,14 +32,14 @@
     </v-card>
   </v-dialog>
 
-  <v-dialog v-model="confirmDiscard" max-width="400">
+  <v-dialog v-model="confirmDiscard" max-width="420">
     <v-card>
       <v-card-title>{{ $t('sftp.editor.unsavedTitle') }}</v-card-title>
       <v-card-text>{{ $t('sftp.editor.unsavedMessage', { name: fileName }) }}</v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn variant="text" @click="confirmDiscard = false">{{ $t('common.cancel') }}</v-btn>
-        <v-btn color="error" @click="close">{{ $t('sftp.editor.discard') }}</v-btn>
+        <v-btn @click="confirmDiscard = false">{{ $t('common.cancel') }}</v-btn>
+        <v-btn variant="flat" color="error" @click="close">{{ $t('sftp.editor.discard') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

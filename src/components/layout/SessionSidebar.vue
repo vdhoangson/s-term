@@ -2,7 +2,7 @@
   <!-- Connections panel -->
   <aside v-show="isOpen" class="st-block st-hosts" :aria-label="t('sidebar.savedConnections')">
     <div class="st-block-header">
-      <span class="st-hosts__label">{{ t('sidebar.savedConnections') }}</span>
+      <span class="st-label">{{ t('sidebar.savedConnections') }}</span>
       <span class="st-spacer"></span>
       <button
         class="st-icon-btn"
@@ -32,10 +32,11 @@
 
     <!-- Search -->
     <div class="st-hosts__search">
-      <label class="st-hosts__input">
-        <v-icon icon="mdi-magnify" size="14" />
+      <label class="st-hosts__field">
+        <v-icon icon="mdi-magnify" size="16" />
         <input
           v-model="search"
+          class="st-input"
           :placeholder="t('sidebar.searchPlaceholder')"
           :aria-label="t('sidebar.searchPlaceholder')"
         />
@@ -43,17 +44,17 @@
     </div>
 
     <!-- Sessions Tree -->
-    <v-list density="compact" nav bg-color="transparent" class="flex-grow-1 overflow-y-auto py-0">
+    <v-list nav bg-color="transparent" class="flex-grow-1 overflow-y-auto py-0">
       <draggable
         v-model="visibleTree"
         item-key="id"
         tag="div"
         group="sessions"
         :disabled="isFiltering"
+        :animation="200"
         @change="onDragChange"
         @start="onDragStart"
         @end="onDragEnd"
-        :animation="200"
       >
         <template #item="{ element }">
           <div>
@@ -101,21 +102,23 @@
   />
 
   <!-- New/Rename Folder Dialog -->
-  <v-dialog v-model="showFolderDialog" max-width="400">
+  <v-dialog v-model="showFolderDialog" max-width="420">
     <v-card>
-      <v-card-title>{{ editingFolder ? 'Rename Folder' : 'New Folder' }}</v-card-title>
+      <v-card-title>{{
+        editingFolder ? t('sidebar.renameFolder') : t('sidebar.newFolder')
+      }}</v-card-title>
       <v-card-text>
         <v-text-field
           v-model="folderName"
-          label="Folder Name"
+          :label="t('sidebar.folderName')"
           autofocus
           @keyup.enter="saveFolder"
         ></v-text-field>
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn variant="text" @click="showFolderDialog = false">{{ t('cancel') }}</v-btn>
-        <v-btn color="primary" @click="saveFolder">{{ t('save') }}</v-btn>
+        <v-btn @click="showFolderDialog = false">{{ t('common.cancel') }}</v-btn>
+        <v-btn variant="flat" color="primary" @click="saveFolder">{{ t('common.save') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -308,15 +311,13 @@ function handleEditConnection(item: TreeNode) {
 }
 
 async function deleteConnection(id: string) {
-  if (confirm('Are you sure you want to delete this connection?')) {
+  if (confirm(t('sidebar.confirmDeleteConnection'))) {
     await connectionStore.deleteConnection(id)
   }
 }
 
 async function deleteFolder(id: string) {
-  if (
-    confirm('Are you sure you want to delete this folder? All contents will be deleted/orphaned.')
-  ) {
+  if (confirm(t('sidebar.confirmDeleteFolder'))) {
     await connectionStore.deleteFolder(id)
   }
 }
@@ -385,47 +386,31 @@ async function saveFolder() {
   width: 248px;
 }
 
-.st-hosts__label {
-  color: var(--st-muted);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-}
-
 .st-hosts__search {
-  padding: 10px;
+  padding: 8px;
 }
 
-.st-hosts__input {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 30px;
-  padding: 0 10px;
-  border: 1px solid var(--st-border);
-  border-radius: 6px;
-  background: var(--st-input-bg);
+.st-hosts__field {
+  position: relative;
+  display: block;
+}
+
+.st-hosts__field .v-icon {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
   color: var(--st-muted);
+  pointer-events: none;
 }
 
-.st-hosts__input:focus-within {
-  border-color: var(--st-gold);
-}
-
-.st-hosts__input input {
-  flex: 1;
-  min-width: 0;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--st-text);
-  font: inherit;
-  font-size: 12px;
+.st-hosts__field .st-input {
+  width: 100%;
+  padding-left: 36px;
 }
 
 .st-hosts__footer {
-  padding: 10px;
+  padding: 8px;
   border-top: 1px solid var(--st-border-soft);
 }
 </style>

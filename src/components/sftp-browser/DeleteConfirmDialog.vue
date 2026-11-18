@@ -1,14 +1,16 @@
 <template>
-  <v-dialog v-model="isOpen" max-width="400">
+  <v-dialog v-model="isOpen" max-width="420">
     <v-card>
-      <v-card-title class="text-h5">{{ $t('sftp.deleteDialog.title') }}</v-card-title>
+      <v-card-title>{{ $t('sftp.deleteDialog.title') }}</v-card-title>
       <v-card-text>
         {{ $t('sftp.deleteDialog.message', { name: fileName }) }}
       </v-card-text>
       <v-card-actions>
         <v-spacer />
-        <v-btn color="grey" @click="handleCancel">{{ $t('sftp.deleteDialog.cancel') }}</v-btn>
-        <v-btn color="error" @click="handleDelete">{{ $t('sftp.deleteDialog.delete') }}</v-btn>
+        <v-btn @click="handleCancel">{{ $t('sftp.deleteDialog.cancel') }}</v-btn>
+        <v-btn variant="flat" color="error" @click="handleDelete">{{
+          $t('sftp.deleteDialog.delete')
+        }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

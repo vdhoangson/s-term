@@ -3,7 +3,7 @@
     <input
       ref="input"
       v-model="term"
-      class="terminal-search__input"
+      class="st-input"
       :placeholder="$t('terminal.find')"
       :aria-label="$t('terminal.find')"
       @keydown.enter.exact.prevent="find(true)"
@@ -54,18 +54,19 @@ const vuetifyTheme = useTheme()
 const input = ref<HTMLInputElement | null>(null)
 const term = ref('')
 
-// Match colors must be #RRGGBB and keep the theme's foreground readable
+// Match colors must be #RRGGBB and keep the theme's foreground readable.
+// Rulers reuse the gold values of terminalThemes (TerminalView.vue).
 const decorations = () =>
   vuetifyTheme.global.name.value === 'light'
     ? {
         matchBackground: '#F2E3A8',
-        matchOverviewRuler: '#B8901F',
+        matchOverviewRuler: '#AA8419',
         activeMatchBackground: '#E0B93E',
         activeMatchColorOverviewRuler: '#8A6510',
       }
     : {
         matchBackground: '#4A3D12',
-        matchOverviewRuler: '#B8901F',
+        matchOverviewRuler: '#DDB04A',
         activeMatchBackground: '#7A6218',
         activeMatchColorOverviewRuler: '#F2D27A',
       }
@@ -101,28 +102,15 @@ defineExpose({ focus })
   z-index: 5;
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   padding: 4px;
   border: 1px solid var(--st-border);
-  border-radius: 8px;
+  border-radius: var(--st-r-md);
   background: var(--st-panel);
   box-shadow: var(--st-shadow);
 }
 
-.terminal-search__input {
+.terminal-search .st-input {
   width: 180px;
-  height: 26px;
-  padding: 0 8px;
-  border: 1px solid var(--st-border);
-  border-radius: 5px;
-  outline: 0;
-  background: var(--st-input-bg);
-  color: var(--st-text);
-  font: inherit;
-  font-size: 12px;
-}
-
-.terminal-search__input:focus {
-  border-color: var(--st-gold);
 }
 </style>

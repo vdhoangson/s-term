@@ -1,13 +1,13 @@
 <template>
-  <v-card-actions class="px-4 pb-4">
+  <v-card-actions>
     <v-spacer></v-spacer>
-    <v-btn variant="text" :disabled="loading" @click="$emit('cancel')">
+    <v-btn :disabled="loading" @click="$emit('cancel')">
       {{ $t('common.cancel') }}
     </v-btn>
     <v-btn
       v-if="!editMode"
       color="primary"
-      variant="tonal"
+      variant="flat"
       :disabled="!valid || loading"
       :loading="loading"
       @click="$emit('connect')"
@@ -17,7 +17,7 @@
     <v-btn
       v-else
       color="primary"
-      variant="tonal"
+      variant="flat"
       :disabled="!valid || loading"
       :loading="loading"
       @click="$emit('save')"

@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="isOpen" max-width="400">
+  <v-dialog v-model="isOpen" max-width="420">
     <v-card>
       <v-card-title>{{ $t('sftp.renameDialog.title') }}</v-card-title>
       <v-card-text>
@@ -7,8 +7,6 @@
           v-model="newName"
           :label="$t('sftp.renameDialog.label')"
           :placeholder="$t('sftp.renameDialog.placeholder')"
-          variant="outlined"
-          density="compact"
           autofocus
           @keyup.enter="handleRename"
         />
@@ -16,7 +14,9 @@
       <v-card-actions>
         <v-spacer />
         <v-btn @click="handleCancel">{{ $t('sftp.renameDialog.cancel') }}</v-btn>
-        <v-btn color="primary" @click="handleRename">{{ $t('sftp.renameDialog.rename') }}</v-btn>
+        <v-btn variant="flat" color="primary" @click="handleRename">{{
+          $t('sftp.renameDialog.rename')
+        }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

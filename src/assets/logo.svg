@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="84 84 856 856">
+  <title>S-Term</title>
+  <defs>
+    <linearGradient id="st-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1c1b19"/>
+      <stop offset="1" stop-color="#0a0a0b"/>
+    </linearGradient>
+    <linearGradient id="st-gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff1b8"/>
+      <stop offset=".35" stop-color="#f2d27a"/>
+      <stop offset=".7" stop-color="#d4af37"/>
+      <stop offset="1" stop-color="#9c7a22"/>
+    </linearGradient>
+  </defs>
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#st-bg)"/>
+  <rect x="104" y="104" width="816" height="816" rx="181" fill="none" stroke="#d4af37" stroke-opacity=".28" stroke-width="6"/>
+  <path d="M498.6 347.7A100 100 0 1 0 422 512A100 100 0 1 1 345.4 676.3" fill="none" stroke="url(#st-gold)" stroke-width="84" stroke-linecap="round"/>
+  <rect x="590" y="670" width="150" height="84" rx="14" fill="url(#st-gold)"/>
+</svg>

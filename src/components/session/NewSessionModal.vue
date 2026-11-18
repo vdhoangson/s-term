@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog" max-width="700px" persistent>
+  <v-dialog v-model="dialog" max-width="720" persistent>
     <v-card>
       <v-card-title>
         {{ editConnection ? $t('modal.title.edit') : $t('modal.title.new') }}
@@ -8,18 +8,15 @@
       <!-- Session Type Selector -->
       <SessionTypeSelector v-model="selectedType" :types="sessionTypes" />
 
-      <v-divider color="grey-darken-2"></v-divider>
+      <v-divider></v-divider>
 
-      <v-card-text class="pa-3">
+      <v-card-text>
         <!-- SSH Content -->
         <div v-if="selectedType === 'ssh'">
-          <v-sheet
-            class="pa-3 bg-transparent rounded"
-            style="border-color: var(--st-border) !important"
-          >
+          <div class="conn-section">
             <div class="d-flex align-center mb-3">
-              <v-icon icon="mdi-key-variant" color="primary" size="small" class="mr-2"></v-icon>
-              <span class="text-body-2 font-weight-bold">{{ $t('modal.tabs.connection') }}</span>
+              <v-icon icon="mdi-key-variant" size="small" class="st-block-icon mr-2"></v-icon>
+              <span class="st-block-title">{{ $t('modal.tabs.connection') }}</span>
             </div>
 
             <v-row dense>
@@ -29,8 +26,6 @@
                   v-model="connection.name"
                   :label="$t('modal.fields.name')"
                   :placeholder="$t('modal.fields.namePlaceholder')"
-                  variant="outlined"
-                  density="compact"
                   hide-details
                   prepend-inner-icon="mdi-label"
                 ></v-text-field>
@@ -42,8 +37,6 @@
                   v-model="connection.host"
                   :label="$t('modal.fields.host')"
                   :placeholder="$t('modal.fields.hostPlaceholder')"
-                  variant="outlined"
-                  density="compact"
                   hide-details
                   required
                 ></v-text-field>
@@ -55,8 +48,6 @@
                   v-model.number="connection.port"
                   :label="$t('modal.fields.port')"
                   type="number"
-                  variant="outlined"
-                  density="compact"
                   hide-details
                 ></v-text-field>
               </v-col>
@@ -67,8 +58,6 @@
                   v-model="connection.username"
                   :label="$t('modal.fields.username')"
                   :placeholder="$t('modal.fields.usernamePlaceholder')"
-                  variant="outlined"
-                  density="compact"
                   hide-details
                   prepend-inner-icon="mdi-account"
                 ></v-text-field>
@@ -97,8 +86,6 @@
                       : $t('modal.fields.passwordPlaceholder')
                   "
                   type="password"
-                  variant="outlined"
-                  density="compact"
                   hide-details
                   prepend-inner-icon="mdi-lock"
                 ></v-text-field>
@@ -109,17 +96,15 @@
                 <v-text-field
                   v-model="connection.privateKeyPath"
                   :label="$t('modal.fields.privateKey')"
-                  variant="outlined"
-                  density="compact"
                   hide-details
                   readonly
                 >
                   <template #append-inner>
                     <v-btn
                       icon="mdi-folder-open"
-                      variant="text"
                       size="small"
-                      color="primary"
+                      :aria-label="$t('modal.fields.selectFile')"
+                      :title="$t('modal.fields.selectFile')"
                       @click="selectKeyFile"
                     ></v-btn>
                   </template>
@@ -137,8 +122,6 @@
                       : $t('modal.fields.passphrasePlaceholder')
                   "
                   type="password"
-                  variant="outlined"
-                  density="compact"
                   hide-details
                   prepend-inner-icon="mdi-key"
                 ></v-text-field>
@@ -149,8 +132,6 @@
                 <v-checkbox
                   v-model="connection.agentForward"
                   :label="$t('modal.fields.agentForward')"
-                  color="primary"
-                  density="compact"
                   hide-details
                 ></v-checkbox>
               </v-col>
@@ -166,8 +147,6 @@
                   :placeholder="$t('modal.fields.jumpNone')"
                   persistent-placeholder
                   clearable
-                  variant="outlined"
-                  density="compact"
                   hide-details
                   prepend-inner-icon="mdi-transit-connection-variant"
                 ></v-select>
@@ -178,29 +157,25 @@
                 <v-switch
                   v-model="connection.x11Forwarding"
                   :label="$t('modal.fields.x11Forwarding')"
-                  color="primary"
-                  density="compact"
                   hide-details
                 >
                   <template #prepend>
-                    <v-icon icon="mdi-window-restore" size="small" color="primary"></v-icon>
+                    <v-icon icon="mdi-window-restore" size="small" class="st-block-icon"></v-icon>
                   </template>
                 </v-switch>
               </v-col>
             </v-row>
-          </v-sheet>
+          </div>
         </div>
 
         <!-- Other Session Types -->
-        <div v-else class="d-flex align-center justify-center" style="height: 200px">
-          <div class="text-center">
-            <v-icon :icon="currentTypeIcon" size="64" color="grey"></v-icon>
-            <div class="mt-4 text-h6 text-grey">{{ currentTypeTitle }} not implemented yet</div>
-          </div>
+        <div v-else class="conn-empty d-flex flex-column align-center justify-center">
+          <v-icon :icon="currentTypeIcon" size="64"></v-icon>
+          <div class="mt-4">{{ $t('modal.notImplemented', { type: currentTypeTitle }) }}</div>
         </div>
       </v-card-text>
 
-      <v-divider color="grey-darken-2"></v-divider>
+      <v-divider></v-divider>
 
       <!-- Action Buttons -->
       <ModalActions
@@ -260,9 +235,7 @@ const jumpHosts = computed(() =>
   connectionStore.connections.filter(c => c.type === 'ssh' && c.id !== props.editConnection?.id)
 )
 
-const sessionTypes: ISessionType[] = [
-  { title: 'SSH', value: 'ssh', icon: 'mdi-key-variant', color: 'primary' },
-]
+const sessionTypes: ISessionType[] = [{ title: 'SSH', value: 'ssh', icon: 'mdi-key-variant' }]
 
 const currentTypeIcon = computed(() => sessionTypes.find(t => t.value === selectedType.value)?.icon)
 const currentTypeTitle = computed(
@@ -360,3 +333,17 @@ function handleConnect() {
   handleSave()
 }
 </script>
+
+<style scoped>
+.conn-section {
+  padding: 12px;
+  border: 1px solid var(--st-border);
+  border-radius: var(--st-r-md);
+}
+
+.conn-empty {
+  height: 200px;
+  color: var(--st-muted);
+  font-size: var(--st-fs-xl);
+}
+</style>

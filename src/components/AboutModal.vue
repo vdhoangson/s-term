@@ -1,12 +1,12 @@
 <template>
-  <v-dialog v-model="dialog" max-width="500px">
-    <v-card class="text-center pa-4">
-      <v-card-title class="text-h5 font-weight-bold"> S-Term </v-card-title>
+  <v-dialog v-model="dialog" max-width="560">
+    <v-card class="text-center">
+      <v-card-title>S-Term</v-card-title>
 
       <v-card-text>
         <div class="mb-4">
-          <v-img src="/build/icons/png/128x128.png" max-width="128" class="mx-auto"></v-img>
-          <div class="text-subtitle-1">Version {{ version }}</div>
+          <img :src="logoUrl" alt="" width="96" height="96" class="d-block mx-auto" />
+          <div class="text-subtitle-1">{{ $t('about.version', { version }) }}</div>
         </div>
 
         <p class="text-body-1 mb-4">
@@ -15,20 +15,20 @@
 
         <v-divider class="my-3"></v-divider>
 
-        <div class="text-caption text-grey">
+        <div class="st-about__meta">
           <p>{{ $t('about.author') }}: vdhoangson</p>
           <p>
             <a href="#" @click.prevent="openLink('https://github.com/vdhoangson/s-term')">
-              GitHub Repository
+              {{ $t('about.github') }}
             </a>
           </p>
-          <p class="mt-2">Copyright © 2025</p>
+          <p class="mt-2">{{ $t('about.copyright', { year: new Date().getFullYear() }) }}</p>
         </div>
       </v-card-text>
 
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="primary" variant="text" @click="dialog = false">
+        <v-btn @click="dialog = false">
           {{ $t('common.close') }}
         </v-btn>
       </v-card-actions>
@@ -39,6 +39,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { version } from '../../package.json'
+import logoUrl from '@/assets/logo.svg'
 
 const props = defineProps<{
   modelValue: boolean
@@ -57,3 +58,10 @@ function openLink(url: string) {
   window.open(url, '_blank')
 }
 </script>
+
+<style scoped>
+.st-about__meta {
+  color: var(--st-muted);
+  font-size: var(--st-fs-sm);
+}
+</style>

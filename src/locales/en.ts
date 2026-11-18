@@ -13,10 +13,17 @@ export default {
       settings: 'Settings',
     },
     sshConfigImported: 'Imported {imported} connection(s), skipped {skipped}',
+    renameFolder: 'Rename Folder',
+    folderName: 'Folder Name',
+    confirmDeleteConnection: 'Are you sure you want to delete this connection?',
+    confirmDeleteFolder: 'Delete this folder? Its connections will move to the top level.',
   },
   about: {
     description: 'Modern SSH Terminal with SFTP support, X11 forwarding, and remote monitoring.',
     author: 'Author',
+    version: 'Version {version}',
+    github: 'GitHub Repository',
+    copyright: 'Copyright © {year}',
   },
   settings: {
     title: 'Settings',
@@ -39,6 +46,10 @@ export default {
     find: 'Find',
     findPrevious: 'Previous match',
     findNext: 'Next match',
+    connectionLost: 'Connection Lost',
+    reconnectHint: 'Press {key} to reconnect',
+    exitHint: 'Press {key} to exit',
+    copied: 'Copied to clipboard',
   },
   session: {
     noActiveSessions: 'No Active Sessions',
@@ -48,6 +59,8 @@ export default {
     newTerminal: 'New Terminal',
     tabs: 'Sessions',
     closeTab: 'Close tab {title}',
+    rename: 'Rename',
+    itemActions: 'Actions for {name}',
   },
   sftp: {
     title: 'SFTP Browser',
@@ -67,6 +80,8 @@ export default {
       rename: 'Rename',
     },
     emptyDirectory: 'Empty directory',
+    pathLabel: 'Current path',
+    fileActions: 'Actions for {name}',
     downloadedTo: 'Downloaded to {path}',
     newFolderDialog: {
       title: 'New Folder',
@@ -119,6 +134,7 @@ export default {
   monitoring: {
     title: 'Monitoring',
     toggle: 'Remote Monitoring',
+    cpuWindow: 'CPU · 60s',
     metrics: {
       cpu: 'CPU',
       ram: 'RAM',
@@ -127,6 +143,10 @@ export default {
       disk: 'Disk',
       username: 'User',
     },
+  },
+  shell: {
+    local: 'local',
+    thisSession: 'this session',
   },
   widgets: {
     label: 'Widgets',
@@ -181,6 +201,7 @@ export default {
       publicKeySelected:
         'Warning: You selected a public key file (.pub). Please select the private key file instead.',
     },
+    notImplemented: '{type} is not implemented yet',
   },
   common: {
     save: 'Save',
@@ -194,7 +215,6 @@ export default {
     loading: 'Loading...',
     error: 'Error',
     success: 'Success',
-    ok: 'OK',
   },
   updater: {
     checking: 'Checking for updates...',

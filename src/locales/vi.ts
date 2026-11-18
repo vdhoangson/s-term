@@ -13,10 +13,17 @@ export default {
       settings: 'Cài đặt',
     },
     sshConfigImported: 'Đã nhập {imported} kết nối, bỏ qua {skipped}',
+    renameFolder: 'Đổi tên thư mục',
+    folderName: 'Tên thư mục',
+    confirmDeleteConnection: 'Bạn có chắc muốn xóa kết nối này không?',
+    confirmDeleteFolder: 'Xóa thư mục này? Các kết nối bên trong sẽ được chuyển ra ngoài cùng.',
   },
   about: {
     description: 'Terminal SSH hiện đại với hỗ trợ SFTP, X11 forwarding và giám sát từ xa.',
     author: 'Tác giả',
+    version: 'Phiên bản {version}',
+    github: 'Kho mã nguồn GitHub',
+    copyright: 'Bản quyền © {year}',
   },
   settings: {
     title: 'Cài đặt',
@@ -39,6 +46,10 @@ export default {
     find: 'Tìm kiếm',
     findPrevious: 'Kết quả trước',
     findNext: 'Kết quả tiếp theo',
+    connectionLost: 'Mất kết nối',
+    reconnectHint: 'Nhấn {key} để kết nối lại',
+    exitHint: 'Nhấn {key} để thoát',
+    copied: 'Đã sao chép vào bộ nhớ tạm',
   },
   session: {
     noActiveSessions: 'Không có phiên làm việc',
@@ -48,6 +59,8 @@ export default {
     newTerminal: 'Tạo terminal mới',
     tabs: 'Phiên',
     closeTab: 'Đóng tab {title}',
+    rename: 'Đổi tên',
+    itemActions: 'Thao tác với {name}',
   },
   sftp: {
     title: 'Trình duyệt SFTP',
@@ -67,6 +80,8 @@ export default {
       rename: 'Đổi tên',
     },
     emptyDirectory: 'Thư mục trống',
+    pathLabel: 'Đường dẫn hiện tại',
+    fileActions: 'Thao tác với {name}',
     downloadedTo: 'Đã tải xuống vào {path}',
     newFolderDialog: {
       title: 'Tạo thư mục mới',
@@ -119,6 +134,7 @@ export default {
   monitoring: {
     title: 'Giám sát',
     toggle: 'Bật/Tắt giám sát',
+    cpuWindow: 'CPU · 60 giây',
     metrics: {
       cpu: 'CPU',
       ram: 'RAM',
@@ -127,6 +143,10 @@ export default {
       disk: 'Ổ đĩa',
       username: 'Người dùng',
     },
+  },
+  shell: {
+    local: 'cục bộ',
+    thisSession: 'phiên này',
   },
   widgets: {
     label: 'Widget',
@@ -181,6 +201,7 @@ export default {
       publicKeySelected:
         'Cảnh báo: Bạn đã chọn tệp public key (.pub). Vui lòng chọn tệp private key.',
     },
+    notImplemented: '{type} chưa được hỗ trợ',
   },
   common: {
     save: 'Lưu',
@@ -194,7 +215,6 @@ export default {
     loading: 'Đang tải...',
     error: 'Lỗi',
     success: 'Thành công',
-    ok: 'Đồng ý',
   },
   updater: {
     checking: 'Đang kiểm tra cập nhật...',
