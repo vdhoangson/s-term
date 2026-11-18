@@ -219,6 +219,9 @@ function createEntry(container: HTMLElement): ITerminalEntry {
     cleanups.push(window.electronAPI.session.onExit(sessionId, () => disconnected.add(sessionId)))
   }
 
+  // Main holds back output until now so nothing sent before the subscriptions is lost
+  window.electronAPI.session.ready(sessionId)
+
   const entry = { terminal: term, fitAddon: fit, searchAddon: search, cleanups }
   terminalCache.set(sessionId, entry)
   return entry
@@ -252,7 +255,8 @@ function neighbourPaneId(arrow: string) {
 }
 
 onMounted(() => {
-  window.addEventListener('keydown', handleKeydown)
+  // Capture phase: xterm stops propagation of plain keys (r, Esc) on its textarea
+  window.addEventListener('keydown', handleKeydown, true)
 
   const container = terminalContainer.value
   if (!container) return
@@ -332,7 +336,7 @@ watch(
 
 // Only detach: the terminal and its IPC listeners live on in terminalCache until disposeTerminal
 onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleKeydown)
+  window.removeEventListener('keydown', handleKeydown, true)
   selectionListener?.dispose()
   resizeObserver?.disconnect()
   cancelAnimationFrame(fitFrame)

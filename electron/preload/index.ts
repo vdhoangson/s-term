@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     resize: (sessionId: string, cols: number, rows: number) =>
       ipcRenderer.send('session:resize', sessionId, cols, rows),
     kill: (sessionId: string) => ipcRenderer.send('session:kill', sessionId),
+    ready: (sessionId: string) => ipcRenderer.send('session:ready', sessionId),
     ack: (sessionId: string, bytes: number) =>
       ipcRenderer.send('session:ack-data', sessionId, bytes),
     onData: (sessionId: string, callback: (data: string) => void) => {

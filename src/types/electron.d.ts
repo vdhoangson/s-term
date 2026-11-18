@@ -36,6 +36,7 @@ export interface IElectronAPI {
     write: (sessionId: string, data: string) => void
     resize: (sessionId: string, cols: number, rows: number) => void
     kill: (sessionId: string) => void
+    ready: (sessionId: string) => void
     ack: (sessionId: string, bytes: number) => void
     onData: (sessionId: string, callback: (data: string) => void) => () => void
     onExit: (

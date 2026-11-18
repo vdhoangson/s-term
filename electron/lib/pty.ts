@@ -9,6 +9,8 @@ import { StoreService } from '../services/StoreService.js'
 
 export class PtyManager {
   private sessions: Map<string, ISession> = new Map()
+  // Events held per session until its renderer view subscribes (session:ready)
+  private pending = new Map<string, [string, any][]>()
   private sftpService!: SftpService
   private monitoringService!: MonitoringService
   private storeService!: StoreService
@@ -22,6 +24,13 @@ export class PtyManager {
     ipcMain.handle('session:create', async (event, options) => {
       const id = randomUUID()
       let session: ISession
+
+      this.pending.set(id, [])
+      const send = (channel: string, payload: any) => {
+        const queue = this.pending.get(id)
+        if (queue) queue.push([channel, payload])
+        else BrowserWindow.getAllWindows().forEach(win => win.webContents.send(channel, payload))
+      }
 
       if (options.type === 'ssh') {
         // Secrets live in main only; explicit non-empty values in options win
@@ -53,18 +62,10 @@ export class PtyManager {
         session = new LocalSession(id, options)
       }
 
-      session.on('data', (data: string) => {
-        const windows = BrowserWindow.getAllWindows()
-        windows.forEach(win => {
-          win.webContents.send(`session:data:${id}`, data)
-        })
-      })
+      session.on('data', (data: string) => send(`session:data:${id}`, data))
 
       session.on('exit', ({ exitCode, signal }) => {
-        const windows = BrowserWindow.getAllWindows()
-        windows.forEach(win => {
-          win.webContents.send(`session:exit:${id}`, { exitCode, signal })
-        })
+        send(`session:exit:${id}`, { exitCode, signal })
 
         // Cleanup services when session exits
         if (options.type === 'ssh') {
@@ -77,6 +78,16 @@ export class PtyManager {
 
       this.sessions.set(id, session)
       return id
+    })
+
+    // The renderer subscribed: replay what was queued, then stream live
+    ipcMain.on('session:ready', (event, id) => {
+      const queue = this.pending.get(id)
+      if (!queue) return
+      for (const [channel, payload] of queue) {
+        BrowserWindow.getAllWindows().forEach(win => win.webContents.send(channel, payload))
+      }
+      this.pending.delete(id)
     })
 
     // Write data to a session
@@ -97,6 +108,7 @@ export class PtyManager {
 
     // Kill a session
     ipcMain.on('session:kill', (event, id) => {
+      this.pending.delete(id)
       const session = this.sessions.get(id)
       if (session) {
         session.kill()

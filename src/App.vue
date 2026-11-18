@@ -152,9 +152,13 @@ function toggleMonitoring() {
   }
 }
 
+// Session ids with a reconnect in flight, so repeated R presses don't open extra SSH sessions
+const reconnecting = new Set<string>()
+
 async function handleReconnect(sessionId: string) {
   const session = store.sessions.find(s => s.id === sessionId)
-  if (!session || !session.config) return
+  if (!session || !session.config || reconnecting.has(sessionId)) return
+  reconnecting.add(sessionId)
 
   try {
     // Kill old session
@@ -167,6 +171,8 @@ async function handleReconnect(sessionId: string) {
     store.updateSessionId(sessionId, newId)
   } catch (error) {
     console.error('Failed to reconnect:', error)
+  } finally {
+    reconnecting.delete(sessionId)
   }
 }
 

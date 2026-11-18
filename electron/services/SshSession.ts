@@ -130,50 +130,51 @@ export class SshSession extends Session {
       this.jumpClient?.end()
     })
 
-    try {
-      // Validate required fields
-      if (!config.host) {
-        this.emit('data', '\r\n\x1b[1;31m✖ Error: Host is required\x1b[0m\r\n')
-        this.emit('exit', { exitCode: 1, signal: 'ERROR' })
-        return
-      }
+    // Deferred so the owner can attach its data/exit listeners before the first emit
+    process.nextTick(() => {
+      try {
+        // Validate required fields
+        if (!config.host) {
+          this.emit('data', '\r\n\x1b[1;31m✖ Error: Host is required\x1b[0m\r\n')
+          this.emit('exit', { exitCode: 1, signal: 'ERROR' })
+          return
+        }
 
-      const connectConfig = this.buildConnectConfig(config)
-      if (!connectConfig) return
+        const connectConfig = this.buildConnectConfig(config)
+        if (!connectConfig) return
 
-      this.emit(
-        'data',
-        `\r\n\x1b[1;32m⚡ Connecting to ${connectConfig.username}@${connectConfig.host}:${connectConfig.port}...\x1b[0m\r\n`
-      )
+        this.emit(
+          'data',
+          `\r\n\x1b[1;32m⚡ Connecting to ${connectConfig.username}@${connectConfig.host}:${connectConfig.port}...\x1b[0m\r\n`
+        )
 
-      if (config.jump) {
-        const jumpConfig = this.buildConnectConfig(config.jump)
-        if (!jumpConfig) return
+        if (config.jump) {
+          const jumpConfig = this.buildConnectConfig(config.jump)
+          if (!jumpConfig) return
 
-        // The jump host only tunnels; the target handshake runs over the forwarded stream
-        const jump = new Client()
-        this.jumpClient = jump
-        jump.on('error', onError)
-        jump.on('keyboard-interactive', this.answerPrompts(config.jump.password))
-        jump.on('ready', () => {
-          jump.forwardOut('127.0.0.1', 0, connectConfig.host, connectConfig.port, (err, sock) => {
-            if (err) return onError(err)
-            this.client.connect({ ...connectConfig, sock })
+          // The jump host only tunnels; the target handshake runs over the forwarded stream
+          const jump = new Client()
+          this.jumpClient = jump
+          jump.on('error', onError)
+          jump.on('keyboard-interactive', this.answerPrompts(config.jump.password))
+          jump.on('ready', () => {
+            jump.forwardOut('127.0.0.1', 0, connectConfig.host, connectConfig.port, (err, sock) => {
+              if (err) return onError(err)
+              this.client.connect({ ...connectConfig, sock })
+            })
           })
-        })
-        jump.connect(jumpConfig)
-      } else {
-        this.client.connect(connectConfig)
-      }
-    } catch (err: any) {
-      setTimeout(() => {
+          jump.connect(jumpConfig)
+        } else {
+          this.client.connect(connectConfig)
+        }
+      } catch (err: any) {
         this.emit('data', '\r\n\x1b[1;31m╔═══════════════════════════════════════════╗\r\n')
         this.emit('data', '\x1b[1;31m║     CONNECTION FAILED                     ║\r\n')
         this.emit('data', '\x1b[1;31m╚═══════════════════════════════════════════╝\x1b[0m\r\n')
         this.emit('data', `\x1b[1;33m⚠  Error: \x1b[0m${err.message}\r\n\r\n`)
         this.emit('exit', { exitCode: 1, signal: 'ERROR' })
-      }, 100)
-    }
+      }
+    })
   }
 
   // Answer every keyboard-interactive prompt with the stored password
